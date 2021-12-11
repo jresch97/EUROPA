@@ -1,0 +1,2 @@
+# EUROPA
+Platform abstraction layer.
