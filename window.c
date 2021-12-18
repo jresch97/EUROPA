@@ -22,6 +22,7 @@
 #include "window.h"
 #include "window_win32.h"
 
+#include <assert.h>
 #include <stdlib.h>
 
 static const WINDRV* WINDRVS[] = {
@@ -38,7 +39,8 @@ static inline const WINDRV* windrvsel()
 
 WINDOW* winalloc(const char* title, int x, int y, int w, int h)
 {
-        WINDOW* win = (WINDOW*)malloc(sizeof(*win));
+        WINDOW* win;
+        win = malloc(sizeof(*win));
         if (!win) goto err_ret;
         win->drv = windrvsel();
         if (!win->drv) goto err_free;
@@ -47,7 +49,9 @@ WINDOW* winalloc(const char* title, int x, int y, int w, int h)
         win->y = y;
         win->w = w;
         win->h = h;
+        win->surf = NULL;
         win->dat = NULL;
+        assert(win->drv->winalloccb != NULL);
         if (!win->drv->winalloccb(win)) goto err_free;
         return win;
 err_free:
@@ -58,32 +62,48 @@ err_ret:
 
 void winfree(WINDOW* win)
 {
+        assert(win != NULL);
+        assert(win->drv != NULL);
+        assert(win->drv->winfreecb != NULL);
         if (win) {
-                if (win->drv) win->drv->winfreecb(win);
+                if (win->drv && win->drv->winfreecb) {
+                        win->drv->winfreecb(win);
+                }
                 free(win);
-        }
-}
-
-void winsize(WINDOW* win, int* w, int* h)
-{
-        if (win && win->drv && win->drv->winsizecb) {
-                win->drv->winsizecb(win, w, h);
         }
 }
 
 const WINDRV* windrv(WINDOW* win)
 {
+        assert(win != NULL);
         return win->drv;
+}
+
+void winsize(WINDOW* win, int* w, int* h)
+{
+        assert(win != NULL);
+        assert(win->drv != NULL);
+        assert(win->drv->winsizecb != NULL);
+        win->drv->winsizecb(win, w, h);
 }
 
 void winpos(WINDOW* win, int* x, int* y)
 {
-        if (win && win->drv && win->drv->winposcb) {
-                win->drv->winposcb(win, x, y);
-        }
+        assert(win != NULL);
+        assert(win->drv != NULL);
+        assert(win->drv->winposcb != NULL);
+        win->drv->winposcb(win, x, y);
+}
+
+SURFACE* winsurf(WINDOW* win)
+{
+        assert(win != NULL);
+        return win->surf;
 }
 
 int* winpx(WINDOW* win)
 {
-        return win->px;
+        assert(win != NULL);
+        assert(win->surf != NULL);
+        return win->surf->px;
 }

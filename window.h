@@ -22,6 +22,8 @@
 #ifndef EUROPA_WINDOW_H
 #define EUROPA_WINDOW_H
 
+#include "surface.h"
+
 #define WINPOSUND -1
 #define WINPOSCTR -2
 
@@ -38,7 +40,7 @@ typedef struct WINDRV {
 struct WINDOW {
         const char* title;
         int x, y, w, h;
-        int* px;
+        SURFACE* surf;
         const WINDRV* drv;
         void* dat;
 };
@@ -48,6 +50,7 @@ void            winfree(WINDOW* win);
 const WINDRV*   windrv(WINDOW* win);
 void            winsize(WINDOW* win, int* w, int* h);
 void            winpos(WINDOW* win, int* x, int* y);
+SURFACE*        winsurf(WINDOW* win);
 int*            winpx(WINDOW* win);
 void            winpoll();
 

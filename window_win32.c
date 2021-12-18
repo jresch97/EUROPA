@@ -19,6 +19,10 @@
  *
  */
 
+#include "platform.h"
+
+#ifdef PLATFORM_WIN32
+
 #include "window_win32.h"
 
 #include <Windows.h>
@@ -27,9 +31,17 @@
 #define WIN_CLASS_STYLE      (CS_HREDRAW | CS_VREDRAW | CS_OWNDC)
 #define WIN_STYLE            (WS_OVERLAPPEDWINDOW | WS_VISIBLE)
 #define WIN_EX_STYLE         (0)
+#define WIN_ICON             (IDI_APPLICATION)
+#define WIN_CURSOR           (IDC_ARROW)
+
+typedef struct WIN32_BAKBUF {
+        HBITMAP hBitmap;
+        void* mem;
+} WIN32_BAKBUF;
 
 typedef struct WIN32_WINDAT {
         HWND hWnd;
+        WIN32_BAKBUF bakbuf;
 } WIN32_WINDAT;
 
 static int      win32_regwc();
@@ -48,19 +60,19 @@ void winpoll()
 int win32_regwc()
 {
         WNDCLASSEXA wc;
-        static int init = FALSE;
-        if (init) goto suc_ret;
+        static int reg = FALSE;
+        if (reg) goto suc_ret;
         ZeroMemory(&wc, sizeof(WNDCLASSEXA));
         wc.cbSize = sizeof(WNDCLASSEXA);
         wc.lpszClassName = WIN_CLASS;
         wc.style = WIN_CLASS_STYLE;
         wc.hInstance = GetModuleHandle(NULL);
-        wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-        wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.hIcon = LoadIcon(NULL, WIN_ICON);
+        wc.hIconSm = LoadIcon(NULL, WIN_ICON);
+        wc.hCursor = LoadCursor(NULL, WIN_CURSOR);
         wc.lpfnWndProc = WndProc;
         if (!RegisterClassExA(&wc)) goto err_ret;
-        init = TRUE;
+        reg = TRUE;
 suc_ret:
         return 1;
 err_ret:
@@ -79,12 +91,10 @@ int win32_winalloc(WINDOW* win)
         wr.right = win->w;
         wr.bottom = win->h;
         AdjustWindowRectEx(&wr, WIN_STYLE, FALSE, WIN_EX_STYLE);
-        dat->hWnd = CreateWindowExA(WIN_EX_STYLE,
-                                    WIN_CLASS,
-                                    win->title,
-                                    WIN_STYLE,
-                                    win->x < 0 ? CW_USEDEFAULT : win->x,
-                                    win->y < 0 ? CW_USEDEFAULT : win->y,
+        dat->hWnd = CreateWindowExA(WIN_EX_STYLE, WIN_CLASS,
+                                    win->title, WIN_STYLE,
+                                    win->x == WINPOSUND ? CW_USEDEFAULT : win->x,
+                                    win->y == WINPOSUND ? CW_USEDEFAULT : win->y,
                                     wr.right - wr.left, wr.bottom - wr.top,
                                     NULL, NULL, GetModuleHandle(NULL), win);
         if (!dat->hWnd) goto err_free_dat;
@@ -146,6 +156,8 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_CLOSE:
                 PostQuitMessage(0);
                 break;
+        case WM_SIZE:
+                break;
         case WM_PAINT:
                 hDC = BeginPaint(hWnd, &ps);
                 FillRect(hDC, &ps.rcPaint, (HBRUSH)BLACK_BRUSH + 1);
@@ -156,3 +168,5 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
 }
+
+#endif
