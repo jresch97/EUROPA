@@ -30,28 +30,28 @@
 typedef struct WINDOW WINDOW;
 
 typedef struct WINDRV {
-        const char* name;
-        int     (*winalloccb)(WINDOW* win);
-        void    (*winfreecb)(WINDOW* win);
-        void    (*winsizecb)(WINDOW* win, int* w, int* h);
-        void    (*winposcb)(WINDOW* win, int* x, int* y);
+        const char *name;
+        int  (*winalloccb)(WINDOW* win);
+        void (*winfreecb)(WINDOW* win);
+        void (*winsizecb)(WINDOW* win, int* w, int* h);
+        void (*winposcb)(WINDOW* win, int* x, int* y);
 } WINDRV;
 
 struct WINDOW {
-        const char* title;
+        const char *title;
         int x, y, w, h;
-        SURFACE* surf;
-        const WINDRV* drv;
+        SURFACE *surf;
+        const WINDRV *drv;
         void* dat;
 };
 
-WINDOW*         winalloc(const char* title, int x, int y, int w, int h);
-void            winfree(WINDOW* win);
-const WINDRV*   windrv(WINDOW* win);
-void            winsize(WINDOW* win, int* w, int* h);
-void            winpos(WINDOW* win, int* x, int* y);
-SURFACE*        winsurf(WINDOW* win);
-int*            winpx(WINDOW* win);
-void            winpoll();
+WINDOW*       winalloc(const char *title, int x, int y, int w, int h);
+void          winfree(WINDOW *win);
+const WINDRV* windrv(WINDOW *win);
+void          winsize(WINDOW *win, int *w, int *h);
+void          winpos(WINDOW *win, int *x, int *y);
+SURFACE*      winsurf(WINDOW *win);
+int*          winpx(WINDOW *win);
+void          winpoll();
 
 #endif

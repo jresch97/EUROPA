@@ -28,10 +28,10 @@
 
 #include "window.h"
 
-int     win32_winalloc(WINDOW *win);
-void    win32_winfree(WINDOW* win);
-void    win32_winsize(WINDOW* win, int* w, int* h);
-void    win32_winpos(WINDOW* win, int* x, int* y);
+int  win32_winalloc(WINDOW *win);
+void win32_winfree(WINDOW *win);
+void win32_winsize(WINDOW *win, int* w, int* h);
+void win32_winpos(WINDOW *win, int* x, int* y);
 
 static const WINDRV WIN32_WINDRV = {
         "win32",

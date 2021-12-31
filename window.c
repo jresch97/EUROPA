@@ -21,13 +21,19 @@
 
 #include "window.h"
 #include "window_win32.h"
+#include "window_xlib.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
+#include "platform.h"
+
 static const WINDRV* WINDRVS[] = {
 #ifdef PLATFORM_WIN32
         &WIN32_WINDRV,
+#endif
+#ifdef PLATFORM_LINUX
+        &XLIB_WINDRV,
 #endif
         NULL
 };

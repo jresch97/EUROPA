@@ -27,12 +27,12 @@
 
 #include <Windows.h>
 
-#define WIN_CLASS            "Europa Window Class"
-#define WIN_CLASS_STYLE      (CS_HREDRAW | CS_VREDRAW | CS_OWNDC)
-#define WIN_STYLE            (WS_OVERLAPPEDWINDOW | WS_VISIBLE)
-#define WIN_EX_STYLE         (0)
-#define WIN_ICON             (IDI_APPLICATION)
-#define WIN_CURSOR           (IDC_ARROW)
+#define WIN_CLASS       "EUROPA WINDOW CLASS"
+#define WIN_CLASS_STYLE (CS_HREDRAW | CS_VREDRAW | CS_OWNDC)
+#define WIN_STYLE       (WS_OVERLAPPEDWINDOW | WS_VISIBLE)
+#define WIN_EX_STYLE    (0)
+#define WIN_ICON        (IDI_APPLICATION)
+#define WIN_CURSOR      (IDC_ARROW)
 
 typedef struct WIN32_BAKBUF {
         HBITMAP hBitmap;
@@ -44,8 +44,8 @@ typedef struct WIN32_WINDAT {
         WIN32_BAKBUF bakbuf;
 } WIN32_WINDAT;
 
-static int      win32_regwc();
-static LRESULT  WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+static int     win32_regwc();
+static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void winpoll()
 {
@@ -79,13 +79,13 @@ err_ret:
         return 0;
 }
 
-int win32_winalloc(WINDOW* win)
+int win32_winalloc(WINDOW *win)
 {
-        WIN32_WINDAT* dat;
+        WIN32_WINDAT *dat;
         RECT wr;
         if (!win32_regwc()) goto err_ret;
         if (!win)  goto err_ret;
-        dat = malloc(sizeof(WIN32_WINDAT));
+        dat = malloc(sizeof(*dat));
         if (!dat) goto err_ret;
         wr.left = wr.top = 0;
         wr.right = win->w;
@@ -97,10 +97,10 @@ int win32_winalloc(WINDOW* win)
                                     win->y == WINPOSUND ? CW_USEDEFAULT : win->y,
                                     wr.right - wr.left, wr.bottom - wr.top,
                                     NULL, NULL, GetModuleHandle(NULL), win);
-        if (!dat->hWnd) goto err_free_dat;
+        if (!dat->hWnd) goto err_free;
         win->dat = dat;
         return 1;
-err_free_dat:
+err_free:
         free(dat);
 err_ret:
         return 0;
@@ -108,7 +108,7 @@ err_ret:
 
 void win32_winfree(WINDOW* win)
 {
-        WIN32_WINDAT* dat;
+        WIN32_WINDAT *dat;
         if (win && win->dat) {
                 dat = win->dat;
                 if (dat->hWnd) DestroyWindow(dat->hWnd);
@@ -118,9 +118,9 @@ void win32_winfree(WINDOW* win)
 
 // TODO: cache size and position in WndProc
 
-void win32_winsize(WINDOW* win, int* w, int* h)
+void win32_winsize(WINDOW *win, int *w, int *h)
 {
-        WIN32_WINDAT* dat;
+        WIN32_WINDAT *dat;
         RECT cr;
         if (win->dat) {
                 dat = win->dat;
@@ -133,9 +133,9 @@ void win32_winsize(WINDOW* win, int* w, int* h)
         }
 }
 
-void win32_winpos(WINDOW* win, int* x, int* y)
+void win32_winpos(WINDOW *win, int *x, int *y)
 {
-        WIN32_WINDAT* dat;
+        WIN32_WINDAT *dat;
         RECT cr;
         if (win->dat) {
                 dat = win->dat;

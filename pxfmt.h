@@ -23,7 +23,7 @@
 #define EUROPA_PXFMT_H
 
 typedef struct PXFMT {
-        const char* name;
+        const char *name;
         int r, g, b, a, bypp, bipp;
 } PXFMT;
 

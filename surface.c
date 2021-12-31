@@ -21,6 +21,9 @@
 
 #include "surface.h"
 
+#include <assert.h>
+#include <stdlib.h>
+
 SURFACE* surfalloc(PXFMT pxfmt, int w, int h)
 {
         SURFACE* surf = malloc(sizeof(*surf));
@@ -29,13 +32,16 @@ SURFACE* surfalloc(PXFMT pxfmt, int w, int h)
         surf->w = w;
         surf->h = h;
         surf->px = malloc(w * h * pxfmt.bypp);
+        if (!surf->px) goto err_free;
         surf->ownpx = 1;
         return surf;
+err_free:
+        free(surf);
 err_ret:
         return NULL;
 }
 
-SURFACE* surfwrap(PXFMT pxfmt, int w, int h, int* px)
+SURFACE* surfwrap(PXFMT pxfmt, int w, int h, void *px)
 {
         SURFACE* surf = malloc(sizeof(*surf));
         if (!surf) goto err_ret;
@@ -47,4 +53,13 @@ SURFACE* surfwrap(PXFMT pxfmt, int w, int h, int* px)
         return surf;
 err_ret:
         return NULL;
+}
+
+void surffree(SURFACE *surf)
+{
+        assert(surf != NULL);
+        if (surf) {
+                if (surf->ownpx) free(surf->px);
+                free(surf);
+        }
 }

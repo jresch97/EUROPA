@@ -19,20 +19,28 @@
  *
  */
 
-#ifndef EUROPA_SURFACE_H
-#define EUROPA_SURFACE_H
+#ifndef EUROPA_WINDOW_XLIB_H
+#define EUROPA_WINDOW_XLIB_H
 
-#include "pxfmt.h"
+#include "platform.h"
 
-typedef struct SURFACE {
-        PXFMT pxfmt;
-        int w, h;
-        int ownpx;
-        void *px;
-} SURFACE;
+#ifdef PLATFORM_LINUX
 
-SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap(PXFMT pxfmt, int w, int h, void *px);
-void     surffree(SURFACE *surf);
+#include "window.h"
+
+int  xlib_winalloc(WINDOW *win);
+void xlib_winfree(WINDOW *win);
+void xlib_winsize(WINDOW *win, int* w, int* h);
+void xlib_winpos(WINDOW *win, int* x, int* y);
+
+static const WINDRV XLIB_WINDRV = {
+        "x11/xlib",
+        &xlib_winalloc,
+        &xlib_winfree,
+        &xlib_winsize,
+        &xlib_winpos
+};
+
+#endif
 
 #endif
