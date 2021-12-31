@@ -32,26 +32,32 @@ typedef struct WINDOW WINDOW;
 typedef struct WINDRV {
         const char *name;
         int  (*winalloccb)(WINDOW* win);
-        void (*winfreecb)(WINDOW* win);
-        void (*winsizecb)(WINDOW* win, int* w, int* h);
-        void (*winposcb)(WINDOW* win, int* x, int* y);
+        void (*winfreecb) (WINDOW* win);
+        void (*winsizecb) (WINDOW* win, int* w, int* h);
+        void (*winposcb)  (WINDOW* win, int* x, int* y);
 } WINDRV;
 
 struct WINDOW {
-        const char *title;
-        int x, y, w, h;
-        SURFACE *surf;
-        const WINDRV *drv;
-        void* dat;
+        const WINDRV  *drv;
+        const SURFACE *surf;
+        const char    *title;
+        int            x, y, w, h;
+        void*          dat;
 };
 
-WINDOW*       winalloc(const char *title, int x, int y, int w, int h);
-void          winfree(WINDOW *win);
-const WINDRV* windrv(WINDOW *win);
-void          winsize(WINDOW *win, int *w, int *h);
-void          winpos(WINDOW *win, int *x, int *y);
-SURFACE*      winsurf(WINDOW *win);
-int*          winpx(WINDOW *win);
-void          winpoll();
+int            wininit();
+void           winterm();
+WINDOW*        winalloc(const char *title, int x, int y, int w, int h);
+void           winfree (WINDOW *win);
+const WINDRV*  windrv  (WINDOW *win);
+//void           winpush(WINDOW *win);                   push state changes
+//void           winpull(WINDOW *win);                   pull state changes
+//void           winupdt(WINDOW *win);                   push/pull
+void           winsize (WINDOW *win, int *w, int *h);
+void           winpos  (WINDOW *win, int *x, int *y);
+const SURFACE* winsurf (WINDOW *win);
+int*           winpx   (WINDOW *win);
+//void           winswap(WINDOW *win);                   manually swap front/back buffer
+void           winpoll();
 
 #endif

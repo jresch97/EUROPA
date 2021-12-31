@@ -2,12 +2,15 @@ CC = gcc
 CFLAGS = -std=c99 -pedantic -Wall -I../
 LDFLAGS = -L../ -l:libeuropa.a -lX11
 
-all: europa_test.out
+all: clean window_test.out surface_test.out
 
-europa_test.out: europa_test.c
+window_test.out: window_test.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+surface_test.out: surface_test.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f europa_test.out
+	rm -f window_test.out surface_test.out
 
 .PHONY: clean

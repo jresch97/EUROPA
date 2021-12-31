@@ -19,28 +19,22 @@
  *
  */
 
-#ifndef EUROPA_SURFACE_H
-#define EUROPA_SURFACE_H
 
-#include "pxfmt.h"
+#include <os.h>
 
-typedef struct SURFACE SURFACE;
+int main(int argc, char *argv[])
+{
+        const char *osvers, *osname;
 
-typedef struct SURFDRV {
-        const char *name;
-        int  (*surfalloccb)(SURFACE* surf);
-        void (*surffreecb) (SURFACE* surf);
-} SURFDRV;
+        // Implicitly called but can be called if desired.
+        if (!osinit()) return EXIT_FAILURE;
 
-typedef struct SURFACE {
-        const SURFDRV *drv;
-        PXFMT pxfmt;
-        int w, h, ownpx;
-        void *px, *dat;
-} SURFACE;
+        osname = osname(); // Gets OS name such as "Microsoft Windows 7" or "Linux".
+        osvers = osvers(); // Gets OS kernel version such as "(Windows/NT) 6.1" or "(Linux) X.Y.Z".
 
-SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
-void     surffree (SURFACE *surf);
+        // Display.
+        printf("osvers=%s\n", osvers);
+        printf("osname=%s\n", osname);
 
-#endif
+        return EXIT_SUCCESS;
+}

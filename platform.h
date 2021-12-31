@@ -24,7 +24,7 @@
 
 #ifdef _WIN32
 #define PLATFORM_WIN32
-#elif __linux__
+#elif  __linux__
 #define PLATFORM_LINUX
 #endif
 

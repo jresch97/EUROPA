@@ -19,28 +19,11 @@
  *
  */
 
-#ifndef EUROPA_SURFACE_H
-#define EUROPA_SURFACE_H
+#ifndef EUROPA_OS_H
+#define EUROPA_OS_H
 
-#include "pxfmt.h"
-
-typedef struct SURFACE SURFACE;
-
-typedef struct SURFDRV {
-        const char *name;
-        int  (*surfalloccb)(SURFACE* surf);
-        void (*surffreecb) (SURFACE* surf);
-} SURFDRV;
-
-typedef struct SURFACE {
-        const SURFDRV *drv;
-        PXFMT pxfmt;
-        int w, h, ownpx;
-        void *px, *dat;
-} SURFACE;
-
-SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
-void     surffree (SURFACE *surf);
+int         osinit();
+const char* osname();
+const char* osvers();
 
 #endif

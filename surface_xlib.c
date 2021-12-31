@@ -19,28 +19,21 @@
  *
  */
 
-#ifndef EUROPA_SURFACE_H
-#define EUROPA_SURFACE_H
+#include "surface_xlib.h"
 
-#include "pxfmt.h"
+int xlibshmav()
+{
+        return XShmQueryExtension(xdisp) == 1;
+}
 
-typedef struct SURFACE SURFACE;
+int xlibshmvers(int *maj, int *min, int *pxmav)
+{
+        return XShmQueryVersion(xdisp, &maj, &min, &pxmav) == 1;
+}
 
-typedef struct SURFDRV {
-        const char *name;
-        int  (*surfalloccb)(SURFACE* surf);
-        void (*surffreecb) (SURFACE* surf);
-} SURFDRV;
-
-typedef struct SURFACE {
-        const SURFDRV *drv;
-        PXFMT pxfmt;
-        int w, h, ownpx;
-        void *px, *dat;
-} SURFACE;
-
-SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
-void     surffree (SURFACE *surf);
-
-#endif
+int xlibshmpxmav()
+{
+        int pxmav;
+        if (xlib_shmvers(NULL, NULL, &pxmav)) return pxmav == 1;
+        return 0;
+}

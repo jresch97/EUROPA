@@ -40,7 +40,8 @@ static const WINDRV* WINDRVS[] = {
 
 static inline const WINDRV* windrvsel()
 {
-        return WINDRVS[0];
+        static const int sz = sizeof(WINDRVS) / sizeof(WINDRV);
+        for (int i = 0; i < sz; i++) return WINDRVS[i];
 }
 
 WINDOW* winalloc(const char* title, int x, int y, int w, int h)

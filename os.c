@@ -19,34 +19,49 @@
  *
  */
 
-#include <assert.h>
-#include <stdio.h>
+#include "os.h"
 
-#include "window.h"
+#include "platform.h"
 
-#define WINTITLE  "EUROPA"
-#define WINWIDTH  640
-#define WINHEIGHT 480
+#ifdef PLATFORM_LINUX
+#include <sys/utsname.h>
+#endif
 
-int main(void)
+#ifdef PLATFORM_LINUX
+static struct utsname *g_utsname = NULL;
+#endif
+
+int osinit()
 {
-        int* px;
-        WINDOW* win;
-        const WINDRV* drv;
-        int x, y, w, h;
-        win = winalloc(WINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
-        assert(win != NULL);
-        drv = windrv(win);
-        assert(drv != NULL);
-        while (1) {
-                winpos(win, &x, &y);
-                winsize(win, &w, &h);
-                //px = (int*)winpx(win);
-                for (int y = 0; y < h; y++) {
-                        for (int x = 0; x < w; x++); //*(px + x + y * w) = x & y;
-                }
-                winpoll();
+#ifdef PLATFORM_LINUX
+        if (!g_utsname) {
+                g_utsname = malloc(sizeof(*g_utsname));
+                if (uname(g_utsname) != 0) goto err_ret;
         }
-        winfree(win);
+#endif
+        return 1;
+err_ret:
         return 0;
+}
+
+const char* osname()
+{
+        if (!osinit()) goto err_ret;
+#ifdef PLATFORM_LINUX
+        return g_utsname->sysname;
+#endif
+        return 1;
+err_ret:
+        return NULL;
+}
+
+const char* osvers()
+{
+        if (!osinit()) goto err_ret;
+#ifdef PLATFORM_LINUX
+        return g_utsname->version;
+#endif
+        return 1;
+err_ret:
+        return NULL;
 }
