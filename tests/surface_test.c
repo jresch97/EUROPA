@@ -21,6 +21,7 @@
 
 #include <assert.h>
 #include <surface.h>
+#include <hwsurface.h>
 
 int main(int argc, char *argv[])
 {

@@ -19,13 +19,20 @@
  *
  */
 
-#ifndef EUROPA_DXWINDOW_H
-#define EUROPA_DXWINDOW_H
+#ifndef EUROPA_HWSURFACE_H
+#define EUROPA_HWSURFACE_H
 
 #include "winsys.h"
+#include "pxfmt.h"
 
-struct DXWINDOW {
-        const WINSYSDRV *drv;
+struct HWSURFACE {
+        const WINSYS *sys;
+        PXFMT         pxfmt;
+        int           w, h;
+        void         *px, *dat;
 };
+
+HWSURFACE* hwsurfalloc (PXFMT pxfmt, int w, int h);
+void       hwsurffree  (HWSURFACE *surf);
 
 #endif

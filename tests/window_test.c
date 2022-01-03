@@ -25,7 +25,7 @@
 #include <window.h>
 #include <platform.h>
 
-#define WINTITLE   "EUROPA"
+#define WINTITLE   "EUROPA SW"
 #define GLWINTITLE "EUROPA GL"
 #define VKWINTITLE "EUROPA VK"
 #define DXWINTITLE "EUROPA DX"
@@ -34,39 +34,52 @@
 
 int main(void)
 {
-        int *px;
-        WINDOW *win;
+        int x, y, w, h, *px;
+
+        //WINSYS *winsys
+        WINDOW   *win;
         GLWINDOW *glwin;
         VKWINDOW *vkwin;
         DXWINDOW *dxwin;
-        int x, y, w, h;
 
-        //if (!wininit()) return EXIT_FAILURE;          or implicit?
+        // Initialize default windowing system.
+        defwinsysinit();
 
         // Allocates a software window.
         win = winalloc(WINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
         assert(win != NULL);
+        //winsysalloc(winsys, ...);
 
-        // Allocates a hardware window with an OpenGL 3.0 context.
-        glwin = glwinalloc(GLWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT, 3, 0);
-        assert(glwin != NULL);
+        printf("win=%p\n", (void*)win);
 
-        // Allocates a hardware window with a Vulkan context. (Or NULL on non-DX platforms.)
-        vkwin = vkwinalloc(VKWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
-        assert(vkwin != NULL);
+        // Allocates a hardware window with an OpenGL 3.0 context. (Or NULL on non-GL platforms.)
+        //glwin = glwinalloc(GLWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT, 3, 0);
+        //assert(glwin != NULL);
+        //glwinsysalloc(winsys, ...);
+
+        // Allocates a hardware window with a Vulkan context. (Or NULL on non-VK platforms.)
+        //vkwin = vkwinalloc(VKWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
+        //assert(vkwin != NULL);
+        //vkwinsysalloc(winsys, ...);
 
         // Allocates a hardware window with a DirectX context. (Or NULL on non-DX platforms.)
-        dxwin = dxwinalloc(DXWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
-        #ifdef PLATFORM_WIN32
-        assert(dxwin != NULL);
-        #endif
+        //dxwin = dxwinalloc(DXWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
+        //#ifdef PLATFORM_WIN32
+        //assert(dxwin != NULL);
+        //#endif
+        //dxwinsysalloc(winsys, ...);
+
+        // Free HW windows.
+        //glwinfree(glwin);
+        //vkwinfree(vkwin);
+        //dxwinfree(dxwin);
 
         while (1) {
                 winpull(win);           // Pulls state changes from OS to structure.
 
                 winpos(win, &x, &y);    // Retrieve SW window position.
                 winsize(win, &w, &h);   // Retrieve SW window size.
-                px = (int*)winpx(win);  // Retrieve pixels as int* from SW window HW surface.
+                //px = (int*)winpx(win);  // Retrieve pixels as int* from SW window HW surface.
 
                 printf("win->x=%d,win->y=%d,win->w=%d,win->h=%d\n",
                         x, y, w, h);
@@ -81,16 +94,15 @@ int main(void)
                 winpush(win);           // Pushes state changes from structure to OS.
                 winupdt(win);           // Equivialent to winpush() and winpull().
                 winswap(win);           // Manually swap front/back buffers.
-                winpoll();              // Poll events from windowing system.
+                
+                defwinsyspoll();        // Poll events from default windowing system.
         }
 
-        // Free windows.
+        // Free SW window.
         winfree(win);
-        glwinfree(glwin);
-        vkwinfree(vkwin);
-        dxwinfree(dxwin);
 
-        //winterm();            // not implicit but unneccessary on modern os (on X?)
-        
+        // Terminate default windowing system.
+        defwinsysterm();
+
         return EXIT_SUCCESS;
 }

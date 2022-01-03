@@ -24,23 +24,14 @@
 
 #include "pxfmt.h"
 
-typedef struct SURFACE SURFACE;
-
-typedef struct SURFDRV {
-        const char *name;
-        int  (*surfalloccb)(SURFACE* surf);
-        void (*surffreecb) (SURFACE* surf);
-} SURFDRV;
-
 typedef struct SURFACE {
-        const SURFDRV *drv;
         PXFMT pxfmt;
         int w, h, ownpx;
-        void *px, *dat;
+        void *px;
 } SURFACE;
 
-SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
-void     surffree (SURFACE *surf);
+SURFACE* surfalloc (PXFMT pxfmt, int w, int h);
+SURFACE* surfwrap  (PXFMT pxfmt, int w, int h, void *px);
+void     surffree  (SURFACE *surf);
 
 #endif

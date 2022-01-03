@@ -22,8 +22,8 @@
 #ifndef EUROPA_OS_H
 #define EUROPA_OS_H
 
-int         osinit();
-const char* osname();
-const char* osvers();
+int         osinit ();
+const char* osname ();
+const char* osvers ();
 
 #endif

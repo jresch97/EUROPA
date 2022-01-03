@@ -20,97 +20,81 @@
  */
 
 #include "window.h"
-#include "window_win32.h"
-#include "window_xlib.h"
+#include "hwsurface.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
-#include "platform.h"
-
-static const WINDRV* WINDRVS[] = {
-#ifdef PLATFORM_WIN32
-        &WIN32_WINDRV,
-#endif
-#ifdef PLATFORM_LINUX
-        &XLIB_WINDRV,
-#endif
-        NULL
-};
-
-static inline const WINDRV* windrvsel()
+WINDOW* winalloc (const char* title, int x, int y, int w, int h)
 {
-        static const int sz = sizeof(WINDRVS) / sizeof(WINDRV);
-        for (int i = 0; i < sz; i++) return WINDRVS[i];
-}
-
-WINDOW* winalloc(const char* title, int x, int y, int w, int h)
-{
-        WINDOW* win;
+        WINDOW *win;
         win = malloc(sizeof(*win));
-        if (!win) goto err_ret;
-        win->drv = windrvsel();
-        if (!win->drv) goto err_free;
+        if (!win) return NULL;
+        win->sys = defwinsys();
+        if (!win->sys) goto errfwin;
         win->title = title;
-        win->x = x;
-        win->y = y;
-        win->w = w;
-        win->h = h;
-        win->surf = NULL;
-        win->dat = NULL;
-        assert(win->drv->winalloccb != NULL);
-        if (!win->drv->winalloccb(win)) goto err_free;
+        win->x     = x;
+        win->y     = y;
+        win->w     = w;
+        win->h     = h;
+        win->surf  = hwsurfalloc(RGBA32, w, h);
+        win->dat   = NULL;
+        if (!win->sys->drv.winalloccb(win)) goto errfwin;
         return win;
-err_free:
+errfwin:
         free(win);
-err_ret:
         return NULL;
 }
 
-void winfree(WINDOW* win)
+void winfree (WINDOW* win)
 {
         assert(win != NULL);
-        assert(win->drv != NULL);
-        assert(win->drv->winfreecb != NULL);
         if (win) {
-                if (win->drv && win->drv->winfreecb) {
-                        win->drv->winfreecb(win);
-                }
+                win->sys->drv.winfreecb(win);
                 free(win);
         }
 }
 
-const WINDRV* windrv(WINDOW* win)
+void winpush (WINDOW *win)
 {
         assert(win != NULL);
-        return win->drv;
 }
 
-void winsize(WINDOW* win, int* w, int* h)
+void winpull (WINDOW *win)
 {
         assert(win != NULL);
-        assert(win->drv != NULL);
-        assert(win->drv->winsizecb != NULL);
-        win->drv->winsizecb(win, w, h);
 }
 
-void winpos(WINDOW* win, int* x, int* y)
+void winupdt (WINDOW *win)
 {
         assert(win != NULL);
-        assert(win->drv != NULL);
-        assert(win->drv->winposcb != NULL);
-        win->drv->winposcb(win, x, y);
 }
 
-SURFACE* winsurf(WINDOW* win)
+void winsize (WINDOW* win, int* w, int* h)
+{
+        assert(win != NULL);
+        win->sys->drv.winsizecb(win, w, h);
+}
+
+void winpos (WINDOW* win, int* x, int* y)
+{
+        assert(win != NULL);
+        win->sys->drv.winposcb(win, x, y);
+}
+
+const HWSURFACE* winsurf (WINDOW* win)
 {
         assert(win != NULL);
         return win->surf;
 }
 
-int* winpx(WINDOW* win)
+void* winpx (WINDOW* win)
 {
         assert(win != NULL);
-        assert(win->surf != NULL);
         return win->surf->px;
+}
+
+void winswap(WINDOW *win)
+{
+        assert(win != NULL);
 }

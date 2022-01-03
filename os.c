@@ -31,7 +31,7 @@
 static struct utsname *g_utsname = NULL;
 #endif
 
-int osinit()
+int osinit ()
 {
 #ifdef PLATFORM_LINUX
         if (!g_utsname) {
@@ -44,24 +44,22 @@ err_ret:
         return 0;
 }
 
-const char* osname()
+const char* osname ()
 {
         if (!osinit()) goto err_ret;
 #ifdef PLATFORM_LINUX
         return g_utsname->sysname;
 #endif
-        return 1;
 err_ret:
         return NULL;
 }
 
-const char* osvers()
+const char* osvers ()
 {
         if (!osinit()) goto err_ret;
 #ifdef PLATFORM_LINUX
         return g_utsname->version;
 #endif
-        return 1;
 err_ret:
         return NULL;
 }

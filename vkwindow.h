@@ -22,14 +22,10 @@
 #ifndef EUROPA_VKWINDOW_H
 #define EUROPA_VKWINDOW_H
 
-typedef struct VKWINDOW VKWINDOW;
-
-typedef struct VKWINDRV {
-
-};
+#include "winsys.h"
 
 struct VKWINDOW {
-
+        const WINSYSDRV *drv;
 };
 
 #endif

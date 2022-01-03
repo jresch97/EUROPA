@@ -19,13 +19,7 @@
  *
  */
 
-#ifndef EUROPA_DXWINDOW_H
-#define EUROPA_DXWINDOW_H
-
-#include "winsys.h"
-
-struct DXWINDOW {
-        const WINSYSDRV *drv;
-};
+#ifndef EUROPA_ERROR_H
+#define EUROPA_ERROR_H
 
 #endif

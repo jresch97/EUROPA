@@ -19,13 +19,30 @@
  *
  */
 
-#ifndef EUROPA_DXWINDOW_H
-#define EUROPA_DXWINDOW_H
+#include "hwsurface.h"
 
-#include "winsys.h"
+#include <stdlib.h>
 
-struct DXWINDOW {
-        const WINSYSDRV *drv;
-};
+HWSURFACE* hwsurfalloc(PXFMT pxfmt, int w, int h)
+{
+        HWSURFACE *surf;
+        surf = malloc(sizeof(*surf));
+        if (!surf) return NULL;
+        surf->sys = defwinsys();
+        if (!surf->sys) goto errfsurf;
+        surf->pxfmt = pxfmt;
+        surf->w     = w;
+        surf->h     = h;
+        surf->px    = NULL;
+        surf->dat   = NULL;
+        if (!surf->sys->drv.hwsurfalloccb(surf)) goto errfsurf;
+        return surf;
+errfsurf:
+        free(surf);
+        return NULL;
+}
 
-#endif
+void hwsurffree(HWSURFACE *surf)
+{
+
+}
