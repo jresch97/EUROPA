@@ -28,9 +28,9 @@
 
 #include "winsys.h"
 
-int  xlibwinsysinit  ();
-void xlibwinsysterm  ();
-void xlibwinsyspoll  ();
+int  xlibinit        ();
+void xlibterm        ();
+void xlibpoll        ();
 int  xlibshmav       ();
 int  xlibshmvers     (int *maj, int *min, int *pxmav);
 int  xlibshmpxmav    ();
@@ -44,9 +44,9 @@ void xlibhwsurffree  (HWSURFACE *surf);
 static const WINSYS XLIBWINSYS = {
         "x11/xlib",
         {
-                &xlibwinsysinit,
-                &xlibwinsysterm,
-                &xlibwinsyspoll,
+                &xlibinit,
+                &xlibterm,
+                &xlibpoll,
                 &xlibwinalloc,
                 &xlibwinfree,
                 &xlibwinsize,

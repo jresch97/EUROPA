@@ -56,7 +56,7 @@ typedef struct XLIBHWSURFDAT {
 
 static XLIBWINSYSDAT dat;
 
-int xlibwinsysinit ()
+int xlibinit ()
 {
         if (dat.xdisp) return 1;
         dat.xdisp = XOpenDisplay(NULL);
@@ -66,7 +66,7 @@ int xlibwinsysinit ()
         return 1;
 }
 
-void xlibwinsysterm ()
+void xlibterm ()
 {
         assert(dat.xdisp != NULL);
         if (dat.xdisp) {
@@ -75,7 +75,7 @@ void xlibwinsysterm ()
         }
 }
 
-void xlibwinsyspoll (WINSYS *winsys)
+void xlibpoll ()
 {
         XEvent xe;
         assert(dat.xdisp != NULL);
@@ -107,9 +107,14 @@ errfwdat:
 
 void xlibwinfree (WINDOW *win)
 {
+        XLIBWINDAT *wdat;
         assert(win != NULL);
         assert(dat.xdisp != NULL);
-        // free window...
+        if (win) {
+                wdat = (XLIBWINDAT*)win->dat;
+                XDestroyWindow(dat.xdisp, wdat->xwin);
+                free(wdat);
+        }
 }
 
 void xlibwinsize (WINDOW *win, int* w, int* h)

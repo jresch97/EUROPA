@@ -3,8 +3,8 @@ AR = ar
 CFLAGS = -std=c99 -pedantic -Wall -fPIC -I../
 ARFLAGS = rcs
 LDFLAGS = -lX11 -lXext
-SRC = winsys.c window.c surface.c hwsurface.c xlibwinsys.c
-OBJ = winsys.o window.o surface.o hwsurface.o xlibwinsys.o
+SRC = os.c winsys.c window.c surface.c hwsurface.c xlibwinsys.c
+OBJ = os.o winsys.o window.o surface.o hwsurface.o xlibwinsys.o
 
 all: libeuropa.a libeuropa.so
 

@@ -20,46 +20,48 @@
  */
 
 #include "os.h"
-
 #include "platform.h"
+
+#include <stddef.h>
+#include <string.h>
 
 #ifdef PLATFORM_LINUX
 #include <sys/utsname.h>
 #endif
 
 #ifdef PLATFORM_LINUX
-static struct utsname *g_utsname = NULL;
+static struct utsname gutsname;
 #endif
 
 int osinit ()
 {
 #ifdef PLATFORM_LINUX
-        if (!g_utsname) {
-                g_utsname = malloc(sizeof(*g_utsname));
-                if (uname(g_utsname) != 0) goto err_ret;
-        }
+        if (strlen(gutsname.sysname) > 0) return 1;
+        if (uname(&gutsname) != 0)        return 0;
 #endif
         return 1;
-err_ret:
-        return 0;
 }
 
 const char* osname ()
 {
-        if (!osinit()) goto err_ret;
+        if (!osinit()) return NULL;
 #ifdef PLATFORM_LINUX
-        return g_utsname->sysname;
+        return gutsname.sysname;
 #endif
-err_ret:
-        return NULL;
 }
 
 const char* osvers ()
 {
-        if (!osinit()) goto err_ret;
+        if (!osinit()) return NULL;
 #ifdef PLATFORM_LINUX
-        return g_utsname->version;
+        return gutsname.release;
 #endif
-err_ret:
-        return NULL;
+}
+
+const char* osarch ()
+{
+        if (!osinit()) return NULL;
+#ifdef PLATFORM_LINUX
+        return gutsname.machine;
+#endif
 }

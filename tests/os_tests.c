@@ -20,21 +20,25 @@
  */
 
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <os.h>
 
 int main(int argc, char *argv[])
 {
-        const char *osvers, *osname;
+        const char *name, *vers, *arch;
 
-        // Implicitly called but can be called if desired.
+        /* Implicitly called but can be called if desired. */
         if (!osinit()) return EXIT_FAILURE;
 
-        osname = osname(); // Gets OS name such as "Microsoft Windows 7" or "Linux".
-        osvers = osvers(); // Gets OS kernel version such as "(Windows/NT) 6.1" or "(Linux) X.Y.Z".
+        name = osname(); /* Gets OS name such as "Linux". */
+        vers = osvers(); /* Gets OS kernel version such as "X.Y.Z". */
+        arch = osarch(); /* Gets OS architecture such as "x86_64". */
 
         // Display.
-        printf("osvers=%s\n", osvers);
-        printf("osname=%s\n", osname);
+        printf("osname=%s\n", name);
+        printf("osvers=%s\n", vers);
+        printf("osarch=%s\n", arch);
 
         return EXIT_SUCCESS;
 }
