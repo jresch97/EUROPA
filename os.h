@@ -26,5 +26,7 @@ int         osinit ();
 const char* osname ();
 const char* osvers ();
 const char* osarch ();
+const char* osmach ();
+const char* osuser ();
 
 #endif

@@ -26,6 +26,7 @@
 #include <string.h>
 
 #ifdef PLATFORM_LINUX
+#include <unistd.h>
 #include <sys/utsname.h>
 #endif
 
@@ -38,8 +39,9 @@ int osinit ()
 #ifdef PLATFORM_LINUX
         if (strlen(gutsname.sysname) > 0) return 1;
         if (uname(&gutsname) != 0)        return 0;
-#endif
         return 1;
+#endif
+        return 0;
 }
 
 const char* osname ()
@@ -48,6 +50,7 @@ const char* osname ()
 #ifdef PLATFORM_LINUX
         return gutsname.sysname;
 #endif
+        return NULL;
 }
 
 const char* osvers ()
@@ -56,6 +59,7 @@ const char* osvers ()
 #ifdef PLATFORM_LINUX
         return gutsname.release;
 #endif
+        return NULL;
 }
 
 const char* osarch ()
@@ -64,4 +68,22 @@ const char* osarch ()
 #ifdef PLATFORM_LINUX
         return gutsname.machine;
 #endif
+        return NULL;
+}
+
+const char* osmach ()
+{
+        if (!osinit()) return NULL;
+#ifdef PLATFORM_LINUX
+        return gutsname.nodename;
+#endif
+        return NULL;
+}
+
+const char* osuser ()
+{
+#ifdef PLATFORM_LINUX
+        return getlogin();
+#endif
+        return NULL;
 }
