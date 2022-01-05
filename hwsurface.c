@@ -21,6 +21,7 @@
 
 #include "hwsurface.h"
 
+#include <assert.h>
 #include <stdlib.h>
 
 HWSURFACE* hwsurfalloc(PXFMT pxfmt, int w, int h)
@@ -44,5 +45,9 @@ errfsurf:
 
 void hwsurffree(HWSURFACE *surf)
 {
-
+        assert(surf != NULL);
+        if (surf) {
+                surf->sys->drv.hwsurffreecb(surf);
+                free(surf);
+        }
 }

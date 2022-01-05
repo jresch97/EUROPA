@@ -37,8 +37,8 @@ struct WINSYS {
                 void (*winsyspollcb)  ();
                 int  (*winalloccb)    (WINDOW *win);
                 void (*winfreecb)     (WINDOW *win);
-                void (*winsizecb)     (WINDOW *win, int *w, int *h);
                 void (*winposcb)      (WINDOW *win, int *x, int *y);
+                void (*winsizecb)     (WINDOW *win, int *w, int *h);
                 int  (*hwsurfalloccb) (HWSURFACE *surf);
                 void (*hwsurffreecb)  (HWSURFACE *surf);
         } drv;

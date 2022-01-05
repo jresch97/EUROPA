@@ -31,8 +31,8 @@ SURFACE* surfalloc (PXFMT pxfmt, int w, int h)
         surf->pxfmt = pxfmt;
         surf->w     = w;
         surf->h     = h;
-        surf->px    = malloc(w * h * pxfmt.bypp);
         surf->ownpx = 1;
+        surf->px    = malloc(w * h * pxfmt.bypp);
         if (!surf->px) goto errfsurf;
         return surf;
 errfsurf:
@@ -49,8 +49,8 @@ SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px)
         surf->pxfmt = pxfmt;
         surf->w     = w;
         surf->h     = h;
-        surf->px    = px;
         surf->ownpx = 0;
+        surf->px    = px;
         return surf;
 }
 

@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -std=c99 -pedantic -Wall -I../
 LDFLAGS = -L../ -l:libeuropa.a -lX11 -lXext
 
-all: europa os_tests.out window_tests.out hwsurface_tests.out
+all: europa os_tests.out window_tests.out surface_tests.out hwsurface_tests.out
 
 europa:
 	cd ../ && make && cd -

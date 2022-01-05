@@ -117,18 +117,33 @@ void xlibwinfree (WINDOW *win)
         }
 }
 
-void xlibwinsize (WINDOW *win, int* w, int* h)
+void xlibwinpos (WINDOW *win, int *x, int *y)
 {
+        XLIBWINDAT        *wdat;
+        int                tmpx, tmpy;
         assert(win != NULL);
         assert(dat.xdisp != NULL);
-        // get window size...
+        assert(x != NULL);
+        assert(y != NULL);
+        wdat = (XLIBWINDAT*)win->dat;
+        XTranslateCoordinates(dat.xdisp, wdat->xwin, dat.xroot,
+                              0, 0, &tmpx, &tmpy, NULL);
+        *x = tmpx;
+        *y = tmpy;
 }
 
-void xlibwinpos (WINDOW *win, int* x, int* y)
+void xlibwinsize (WINDOW *win, int *w, int *h)
 {
+        XLIBWINDAT        *wdat;
+        XWindowAttributes  attr;
         assert(win != NULL);
         assert(dat.xdisp != NULL);
-        // get window pos...
+        assert(w != NULL);
+        assert(h != NULL);
+        wdat = (XLIBWINDAT*)win->dat;
+        XGetWindowAttributes(dat.xdisp, wdat->xwin, &attr);
+        *w = attr.width;
+        *h = attr.height;
 }
 
 int xlibhwsurfalloc (HWSURFACE *surf)
@@ -159,7 +174,7 @@ int xlibhwsurfalloc (HWSURFACE *surf)
         }
         else {
                 sdat->shm = 0;
-                // dat->xpxm = ...
+                // sdat->xpxm = ...
                 goto errfsdat;
         }
         surf->dat = sdat;

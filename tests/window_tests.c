@@ -48,26 +48,26 @@ int main(void)
         // Allocates a software window.
         win = winalloc(WINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
         assert(win != NULL);
-        //winsysalloc(winsys, ...);
+        //winallocsys(winsys, ...);
 
         printf("win=%p\n", (void*)win);
 
         // Allocates a hardware window with an OpenGL 3.0 context. (Or NULL on non-GL platforms.)
         //glwin = glwinalloc(GLWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT, 3, 0);
         //assert(glwin != NULL);
-        //glwinsysalloc(winsys, ...);
+        //glwinallocsys(winsys, ...);
 
         // Allocates a hardware window with a Vulkan context. (Or NULL on non-VK platforms.)
         //vkwin = vkwinalloc(VKWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
         //assert(vkwin != NULL);
-        //vkwinsysalloc(winsys, ...);
+        //vkwinallocsys(winsys, ...);
 
         // Allocates a hardware window with a DirectX context. (Or NULL on non-DX platforms.)
         //dxwin = dxwinalloc(DXWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
         //#ifdef PLATFORM_WIN32
         //assert(dxwin != NULL);
         //#endif
-        //dxwinsysalloc(winsys, ...);
+        //dxwinallocsys(winsys, ...);
 
         // Free HW windows.
         //glwinfree(glwin);
@@ -81,7 +81,7 @@ int main(void)
                 winsize(win, &w, &h);   // Retrieve SW window size.
                 //px = (int*)winpx(win);  // Retrieve pixels as int* from SW window HW surface.
 
-                printf("win->x=%d,win->y=%d,win->w=%d,win->h=%d\n",
+                printf("x=%d,y=%d,w=%d,h=%d\n",
                         x, y, w, h);
                 // or
                 printf("win->x=%d,win->y=%d,win->w=%d,win->h=%d\n",

@@ -26,17 +26,17 @@
 
 int main(int argc, char *argv[])
 {
-        int *px;
         HWSURFACE *hwsurf;
+        int       *px;
 
-        // Hardware surfaces need access to OS.
+        /* Hardware surfaces need access to the operating/windowing system. */
         defwinsysinit();
 
-        // Hardware surfaces are managed by the OS.
-        hwsurf = hwsurfalloc(RGBA32, 8, 8); // Allocate 32-bit 640x480 surface via OS.
-
+        /* Hardware surfaces are managed by the operating/windowing system. */
+        hwsurf = hwsurfalloc(RGBA32, 8, 8); /* RGBA 32-bit 8x8 surface. */
         printf("hwsurf=%p,hwsurf->px=%p\n", (void*)hwsurf, hwsurf->px);
 
+        /* Memory read/write. */
         for (int y = 0; y < hwsurf->h; y++) {
                 for (int x = 0; x < hwsurf->w; x++) {
                         px = (int*)hwsurf->px + x + (y * hwsurf->w);
@@ -46,11 +46,9 @@ int main(int argc, char *argv[])
                 printf("\n");
         }
 
-        // Free HW surface.
-        hwsurffree(hwsurf);
+        hwsurffree(hwsurf); /* Free surface memory. */
 
-        // Terminate default windowing system.
-        defwinsysterm();
+        defwinsysterm(); /* Terminate default windowing system. */
 
         return EXIT_SUCCESS;
 }

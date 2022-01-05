@@ -20,46 +20,37 @@
  */
 
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <surface.h>
-#include <hwsurface.h>
 
 int main(int argc, char *argv[])
 {
-        SURFACE   *swsurf, wrapsurf;
-        HWSURFACE *hwsurf;
-        void      *px;
-        int       *ipx;
+        SURFACE *surf, *wsurf;
+        void    *px;
+        //int     *ipx;
 
-        // Allocate arbitrary memory.
-        void *px = malloc(640 * 480 * 4);
+        /* Allocate arbitrary memory. */
+        px = malloc(640 * 480 * RGBA32.bypp);
+        printf("px=%p\n", px);
 
-        // Software surfaces exist in RAM.
-        swsurf = surfalloc(RGBA32, 640, 480); // Allocate 32-bit 640x480 surface in RAM.
-        wrapsurf = surfwrap(RGBA32, 640, 480, px); // Wrap existing memory as a SW surface.
+        /* Software surfaces exist in RAM. */
+        surf = surfalloc(RGBA32, 640, 480); /* RGBA 32-bit 640x480. */
+        printf("surf=%p,surf->px=%p\n", (void*)surf, surf->px);
+        wsurf = surfwrap(RGBA32, 640, 480, px); /* Wrap existing memory as a SW surface. */
+        printf("wsurf=%p,wsurf->px=%p\n", (void*)wsurf, wsurf->px);
 
-        // Hardware surfaces are managed by the OS.
-        hwsurf = hwsurfalloc(RGBA32, 640, 480); // Allocate 32-bit 640x480 surface via OS.
+        /* Blit surface to surface. */
+        //surfblit(surf, wsurf, 0, 0, 640, 480);
 
-        // Blit SW surface to SW surface.
-        surfblit(swsurf, wrapsurf);
+        /* Retrieve surface memory as (void*) and reinterpret as (int*). */
+        //ipx = (int*)surfpx(surf);
 
-        // Blit HW surface to HW surface. Internally uses OS copying.
-        hwsurfblit(hwsurf, hwsurf);
+        /* Free surfaces. */
+        surffree(surf);
+        surffree(wsurf);
 
-        // Blit SW surface to HW surface.
-        hwsurfswblit(hwsurf, swsurf);
-
-        // Retrieve SW surface memory (as void*) and reinterpret as int*.
-        ipx = (int*)surfpx(swsurf);
-
-        // Free SW surfaces.
-        surffree(swsurf);
-        surffree(wrapsurf);
-
-        // Free HW surfaces.
-        hwsurffree(hwsurf);
-
-        // Wrapped surfaces do not own the memory so must be freed.
+        /* Wrapped surfaces do not own the memory so it must be freed. */
         free(px);
 
         return EXIT_SUCCESS;

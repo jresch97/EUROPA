@@ -70,25 +70,25 @@ void winupdt (WINDOW *win)
         assert(win != NULL);
 }
 
-void winsize (WINDOW* win, int* w, int* h)
-{
-        assert(win != NULL);
-        win->sys->drv.winsizecb(win, w, h);
-}
-
-void winpos (WINDOW* win, int* x, int* y)
+void winpos (WINDOW *win, int* x, int* y)
 {
         assert(win != NULL);
         win->sys->drv.winposcb(win, x, y);
 }
 
-const HWSURFACE* winsurf (WINDOW* win)
+void winsize (WINDOW *win, int *w, int *h)
+{
+        assert(win != NULL);
+        win->sys->drv.winsizecb(win, w, h);
+}
+
+const HWSURFACE* winsurf (WINDOW *win)
 {
         assert(win != NULL);
         return win->surf;
 }
 
-void* winpx (WINDOW* win)
+void* winpx (WINDOW *win)
 {
         assert(win != NULL);
         return win->surf->px;
