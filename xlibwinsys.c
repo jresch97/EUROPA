@@ -27,6 +27,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <X11/Xlib.h>
@@ -37,11 +38,13 @@
 #include "hwsurface.h"
 
 #define XLIBSHMPERM 0600
+#define XLIBWINTAG  "EUROPA WINDOW"
 
 typedef struct XLIBWINSYSDAT {
         Display *xdisp;
-        int      xscr;
+        int      xscr, xdepth;
         Window   xroot;
+        GC       xgc;
 } XLIBWINSYSDAT;
 
 typedef struct XLIBWINDAT {
@@ -49,20 +52,37 @@ typedef struct XLIBWINDAT {
 } XLIBWINDAT;
 
 typedef struct XLIBHWSURFDAT {
-        int             shm;
-        Pixmap          xpxm;
-        XShmSegmentInfo xshminf;
+        int              shm;
+        Pixmap           xpxm;
+        XImage          *xshmimg;
+        XShmSegmentInfo  xshminf;
 } XLIBHWSURFDAT;
 
-static XLIBWINSYSDAT dat;
+static XLIBWINSYSDAT  dat;
+static WINDOW        *gwin;
+
+static void xlibwinpos (Window xwin, int *x, int *y)
+{
+        Window tmpwin;
+        int    tmpx, tmpy;
+        assert(dat.xdisp != NULL);
+        assert(x != NULL);
+        assert(y != NULL);
+        XTranslateCoordinates(dat.xdisp, xwin, dat.xroot,
+                              0, 0, &tmpx, &tmpy, &tmpwin);
+        *x = tmpx;
+        *y = tmpy;
+}
 
 int xlibinit ()
 {
         if (dat.xdisp) return 1;
         dat.xdisp = XOpenDisplay(NULL);
         if (!dat.xdisp) return 0;
-        dat.xscr  = DefaultScreen(dat.xdisp);
-        dat.xroot = DefaultRootWindow(dat.xdisp);
+        dat.xscr   = DefaultScreen(dat.xdisp);
+        dat.xdepth = DefaultDepth(dat.xdisp, dat.xscr);
+        dat.xroot  = DefaultRootWindow(dat.xdisp);
+        dat.xgc    = DefaultGC(dat.xdisp, dat.xscr);
         return 1;
 }
 
@@ -77,10 +97,29 @@ void xlibterm ()
 
 void xlibpoll ()
 {
+        HWSURFACE *nsurf;
         XEvent xe;
         assert(dat.xdisp != NULL);
         while (XPending(dat.xdisp)) {
                 XNextEvent(dat.xdisp, &xe);
+                switch (xe.type) {
+                        case ConfigureNotify: {
+                                xlibwinpos(xe.xconfigure.window,
+                                           &gwin->x, &gwin->y);
+                                if (gwin->w != xe.xconfigure.width ||
+                                    gwin->h != xe.xconfigure.height) {
+                                        gwin->w = xe.xconfigure.width;
+                                        gwin->h = xe.xconfigure.height;
+                                        nsurf = hwsurfalloc(RGBA32,
+                                                            gwin->w, gwin->h);
+                                        if (nsurf) {
+                                                hwsurffree(gwin->surf);
+                                                gwin->surf = nsurf;
+                                        }
+                                }
+                                break;
+                        }
+                }
         }
 }
 
@@ -95,10 +134,12 @@ int xlibwinalloc (WINDOW *win)
                                          win->x, win->y, win->w, win->h,
                                          0, 0, 0);
         if (!wdat->xwin) goto errfwdat;
-        XSelectInput(dat.xdisp, wdat->xwin, ExposureMask);
+        XSelectInput(dat.xdisp, wdat->xwin, StructureNotifyMask);
         XStoreName(dat.xdisp, wdat->xwin, win->title);
         XMapWindow(dat.xdisp, wdat->xwin);
+        xlibwinpos(wdat->xwin, &win->x, &win->y);
         win->dat = wdat;
+        gwin = win;
         return 1;
 errfwdat:
         free(wdat);
@@ -117,33 +158,22 @@ void xlibwinfree (WINDOW *win)
         }
 }
 
-void xlibwinpos (WINDOW *win, int *x, int *y)
+void xlibwinswap (WINDOW *win)
 {
-        XLIBWINDAT        *wdat;
-        int                tmpx, tmpy;
+        XLIBWINDAT    *wdat;
+        XLIBHWSURFDAT *sdat;
         assert(win != NULL);
         assert(dat.xdisp != NULL);
-        assert(x != NULL);
-        assert(y != NULL);
         wdat = (XLIBWINDAT*)win->dat;
-        XTranslateCoordinates(dat.xdisp, wdat->xwin, dat.xroot,
-                              0, 0, &tmpx, &tmpy, NULL);
-        *x = tmpx;
-        *y = tmpy;
-}
-
-void xlibwinsize (WINDOW *win, int *w, int *h)
-{
-        XLIBWINDAT        *wdat;
-        XWindowAttributes  attr;
-        assert(win != NULL);
-        assert(dat.xdisp != NULL);
-        assert(w != NULL);
-        assert(h != NULL);
-        wdat = (XLIBWINDAT*)win->dat;
-        XGetWindowAttributes(dat.xdisp, wdat->xwin, &attr);
-        *w = attr.width;
-        *h = attr.height;
+        sdat = (XLIBHWSURFDAT*)win->surf->dat;
+        if (sdat->shm) {
+                XShmPutImage(dat.xdisp, wdat->xwin, dat.xgc, sdat->xshmimg,
+                             0, 0, 0, 0, win->w, win->h, 0);
+        }
+        else {
+                XCopyArea(dat.xdisp, sdat->xpxm, wdat->xwin, dat.xgc,
+                          0, 0, win->w, win->h, 0, 0);
+        }
 }
 
 int xlibhwsurfalloc (HWSURFACE *surf)
@@ -154,7 +184,7 @@ int xlibhwsurfalloc (HWSURFACE *surf)
         assert(dat.xdisp != NULL);
         sdat = malloc(sizeof(*sdat));
         if (!sdat) return 0;
-        if (!XMatchVisualInfo(dat.xdisp, dat.xscr, surf->pxfmt.bipp,
+        if (!XMatchVisualInfo(dat.xdisp, dat.xscr, dat.xdepth,
                               TrueColor, &xvinf)) goto errfsdat;
         if (xlibshmpxmav()) {
                 sdat->shm = 1;
@@ -165,11 +195,11 @@ int xlibhwsurfalloc (HWSURFACE *surf)
                 sdat->xshminf.shmaddr = shmat(sdat->xshminf.shmid, NULL, 0);
                 sdat->xshminf.readOnly = 0;
                 if (!XShmAttach(dat.xdisp, &sdat->xshminf)) goto errfshm;
-                sdat->xpxm = (Pixmap)XShmCreateImage(
+                sdat->xshmimg = XShmCreateImage(
                         dat.xdisp, xvinf.visual, xvinf.depth, ZPixmap,
                         sdat->xshminf.shmaddr, &sdat->xshminf,
                         surf->w, surf->h);
-                if (!sdat->xpxm) goto errdshm;
+                if (!sdat->xshmimg) goto errdshm;
                 surf->px = sdat->xshminf.shmaddr;
         }
         else {
@@ -201,7 +231,8 @@ void xlibhwsurffree (HWSURFACE *surf)
                         shmdt(sdat->xshminf.shmaddr);
                         shmctl(sdat->xshminf.shmid, IPC_RMID, 0);
                 }
-                if (sdat->xpxm) XFreePixmap(dat.xdisp, sdat->xpxm);
+                if (sdat->xshmimg) XDestroyImage(sdat->xshmimg);
+                //if (sdat->xpxm)    XFreePixmap(dat.xdisp, sdat->xpxm);
                 free(sdat);
         }
 }

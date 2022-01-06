@@ -43,19 +43,19 @@ const WINSYS* winsys (const char *name)
 int winsysinit (const WINSYS *sys)
 {
         assert(sys != NULL);
-        return sys->drv.winsysinitcb(sys);
+        return sys->drv.initcb(sys);
 }
 
 void winsysterm (const WINSYS *sys)
 {
         assert(sys != NULL);
-        sys->drv.winsystermcb(sys);
+        sys->drv.termcb(sys);
 }
 
 void winsyspoll (const WINSYS *sys)
 {
         assert(sys != NULL);
-        sys->drv.winsyspollcb(sys);
+        sys->drv.pollcb(sys);
 }
 
 const WINSYS* defwinsys ()

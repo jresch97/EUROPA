@@ -29,21 +29,23 @@
 
 struct WINDOW {
         const WINSYS    *sys;
-        const HWSURFACE *surf;
         const char      *title;
         int              x, y, w, h;
+        HWSURFACE       *surf;
         void            *dat;
 };
 
-WINDOW*          winalloc (const char *title, int x, int y, int w, int h);
-void             winfree  (WINDOW *win);
-void             winpush  (WINDOW *win);
-void             winpull  (WINDOW *win);
-void             winupdt  (WINDOW *win);
-void             winpos   (WINDOW *win, int *x, int *y);
-void             winsize  (WINDOW *win, int *w, int *h);
-const HWSURFACE* winsurf  (WINDOW *win);
-void*            winpx    (WINDOW *win);
-void             winswap  (WINDOW *win);
+WINDOW*          winalloc(const char *title, int x, int y, int w, int h);
+void             winfree (WINDOW *win);
+void             winpos  (WINDOW *win, int *x, int *y);
+void             winsz   (WINDOW *win, int *w, int *h);
+void             winmov  (WINDOW *win, int  x, int  y);
+void             winresz (WINDOW *win, int  w, int  h);
+const HWSURFACE* winsurf (WINDOW *win);
+void*            winpx   (WINDOW *win);
+void             winswap (WINDOW *win);
+void             winpush (WINDOW *win);
+void             winpull (WINDOW *win);
+void             winupdt (WINDOW *win);
 
 #endif

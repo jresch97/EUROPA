@@ -36,8 +36,7 @@ int  xlibshmvers     (int *maj, int *min, int *pxmav);
 int  xlibshmpxmav    ();
 int  xlibwinalloc    (WINDOW *win);
 void xlibwinfree     (WINDOW *win);
-void xlibwinpos      (WINDOW *win, int* x, int* y);
-void xlibwinsize     (WINDOW *win, int* w, int* h);
+void xlibwinswap     (WINDOW *win);
 int  xlibhwsurfalloc (HWSURFACE *surf);
 void xlibhwsurffree  (HWSURFACE *surf);
 
@@ -49,8 +48,7 @@ static const WINSYS XLIBWINSYS = {
                 &xlibpoll,
                 &xlibwinalloc,
                 &xlibwinfree,
-                &xlibwinpos,
-                &xlibwinsize,
+                &xlibwinswap,
                 &xlibhwsurfalloc,
                 &xlibhwsurffree
         }

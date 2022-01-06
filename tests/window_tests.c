@@ -24,84 +24,58 @@
 #include <stdlib.h>
 #include <window.h>
 #include <platform.h>
+#include <math.h>
 
-#define WINTITLE   "EUROPA SW"
-#define GLWINTITLE "EUROPA GL"
-#define VKWINTITLE "EUROPA VK"
-#define DXWINTITLE "EUROPA DX"
+#define WINTITLE   "EUROPA"
 #define WINWIDTH   640
 #define WINHEIGHT  480
 
 int main(void)
 {
-        int x, y, w, h, *px;
+        WINDOW *win;
+        int     x, y, w, h, xx, yy, c, i, *px;
 
-        //WINSYS *winsys
-        WINDOW   *win;
-        GLWINDOW *glwin;
-        VKWINDOW *vkwin;
-        DXWINDOW *dxwin;
-
-        // Initialize default windowing system.
+        /* Initialize default windowing system. */
         defwinsysinit();
 
-        // Allocates a software window.
+        /* Allocates a software window. */
         win = winalloc(WINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
         assert(win != NULL);
         //winallocsys(winsys, ...);
 
         printf("win=%p\n", (void*)win);
 
-        // Allocates a hardware window with an OpenGL 3.0 context. (Or NULL on non-GL platforms.)
-        //glwin = glwinalloc(GLWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT, 3, 0);
-        //assert(glwin != NULL);
-        //glwinallocsys(winsys, ...);
-
-        // Allocates a hardware window with a Vulkan context. (Or NULL on non-VK platforms.)
-        //vkwin = vkwinalloc(VKWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
-        //assert(vkwin != NULL);
-        //vkwinallocsys(winsys, ...);
-
-        // Allocates a hardware window with a DirectX context. (Or NULL on non-DX platforms.)
-        //dxwin = dxwinalloc(DXWINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
-        //#ifdef PLATFORM_WIN32
-        //assert(dxwin != NULL);
-        //#endif
-        //dxwinallocsys(winsys, ...);
-
-        // Free HW windows.
-        //glwinfree(glwin);
-        //vkwinfree(vkwin);
-        //dxwinfree(dxwin);
-
+        i = 0;
         while (1) {
-                winpull(win);           // Pulls state changes from OS to structure.
+                winpos(win, &x, &y);   /* Retrieve window position. */
+                winsz(win, &w, &h);    /* Retrieve window size. */
+                px = (int*)winpx(win); /* Retrieve window pixels as (int*). */
 
-                winpos(win, &x, &y);    // Retrieve SW window position.
-                winsize(win, &w, &h);   // Retrieve SW window size.
-                //px = (int*)winpx(win);  // Retrieve pixels as int* from SW window HW surface.
+                printf("x=%d,y=%d,w=%d,h=%d\n", x, y, w, h);
 
-                printf("x=%d,y=%d,w=%d,h=%d\n",
-                        x, y, w, h);
-                // or
-                printf("win->x=%d,win->y=%d,win->w=%d,win->h=%d\n",
-                        win->x, win->y, win->w, win->h);
-
-                for (int y = 0; y < h; y++) {
-                        for (int x = 0; x < w; x++); //*(px + x + y * w) = x & y;
+                /* Write to window back buffer memory. */
+                for (yy = 0; yy < h; yy++) {
+                        for (xx = 0; xx < w; xx++) {
+                                /* INPUTS */
+                                int xxx = xx + i;
+                                int yyy = yy + i;
+                                /* SEQUENCE */
+                                c = (xxx ^ ((int)(sin(xxx + yyy))) ^ yyy);
+                                /* ITERATOR & BLUE MASK */
+                                c = (c + i) & 0xff;
+                                /* MAP BLUE -> GRAYSCALE */
+                                px[xx + yy * w] = c + c * 0x100 + c * 0x10000;
+                        }
                 }
-
-                winpush(win);           // Pushes state changes from structure to OS.
-                winupdt(win);           // Equivialent to winpush() and winpull().
-                winswap(win);           // Manually swap front/back buffers.
                 
-                defwinsyspoll();        // Poll events from default windowing system.
+                winswap(win);    /* Swap front/back buffers. */
+                defwinsyspoll(); /* Poll events from default windowing system. */
+                i++;
         }
 
-        // Free SW window.
-        winfree(win);
+        winfree(win); /* Free window. */
 
-        // Terminate default windowing system.
+        /* Terminate default windowing system. */
         defwinsysterm();
 
         return EXIT_SUCCESS;

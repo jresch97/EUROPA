@@ -32,13 +32,12 @@ typedef struct HWSURFACE HWSURFACE;
 struct WINSYS {
         const char *name;
         const struct {
-                int  (*winsysinitcb)  ();
-                void (*winsystermcb)  ();
-                void (*winsyspollcb)  ();
+                int  (*initcb)        ();
+                void (*termcb)        ();
+                void (*pollcb)        ();
                 int  (*winalloccb)    (WINDOW *win);
                 void (*winfreecb)     (WINDOW *win);
-                void (*winposcb)      (WINDOW *win, int *x, int *y);
-                void (*winsizecb)     (WINDOW *win, int *w, int *h);
+                void (*winswapcb)     (WINDOW *win);
                 int  (*hwsurfalloccb) (HWSURFACE *surf);
                 void (*hwsurffreecb)  (HWSURFACE *surf);
         } drv;
