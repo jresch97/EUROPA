@@ -53,8 +53,7 @@ typedef struct XLIBWINDAT {
 
 typedef struct XLIBHWSURFDAT {
         int              shm;
-        Pixmap           xpxm;
-        XImage          *xshmimg;
+        XImage          *ximg;
         XShmSegmentInfo  xshminf;
 } XLIBHWSURFDAT;
 
@@ -167,12 +166,12 @@ void xlibwinswap (WINDOW *win)
         wdat = (XLIBWINDAT*)win->dat;
         sdat = (XLIBHWSURFDAT*)win->surf->dat;
         if (sdat->shm) {
-                XShmPutImage(dat.xdisp, wdat->xwin, dat.xgc, sdat->xshmimg,
+                XShmPutImage(dat.xdisp, wdat->xwin, dat.xgc, sdat->ximg,
                              0, 0, 0, 0, win->w, win->h, 0);
         }
         else {
-                XCopyArea(dat.xdisp, sdat->xpxm, wdat->xwin, dat.xgc,
-                          0, 0, win->w, win->h, 0, 0);
+                /*XCopyArea(dat.xdisp, sdat->???, wdat->xwin, dat.xgc,
+                            0, 0, win->w, win->h, 0, 0);*/
         }
 }
 
@@ -186,7 +185,7 @@ int xlibhwsurfalloc (HWSURFACE *surf)
         if (!sdat) return 0;
         if (!XMatchVisualInfo(dat.xdisp, dat.xscr, dat.xdepth,
                               TrueColor, &xvinf)) goto errfsdat;
-        if (xlibshmpxmav()) {
+        if (xlibshmav()) {
                 sdat->shm = 1;
                 sdat->xshminf.shmid = shmget(IPC_PRIVATE,
                                              surf->w * surf->h *
@@ -195,16 +194,15 @@ int xlibhwsurfalloc (HWSURFACE *surf)
                 sdat->xshminf.shmaddr = shmat(sdat->xshminf.shmid, NULL, 0);
                 sdat->xshminf.readOnly = 0;
                 if (!XShmAttach(dat.xdisp, &sdat->xshminf)) goto errfshm;
-                sdat->xshmimg = XShmCreateImage(
+                sdat->ximg = XShmCreateImage(
                         dat.xdisp, xvinf.visual, xvinf.depth, ZPixmap,
                         sdat->xshminf.shmaddr, &sdat->xshminf,
                         surf->w, surf->h);
-                if (!sdat->xshmimg) goto errdshm;
+                if (!sdat->ximg) goto errdshm;
                 surf->px = sdat->xshminf.shmaddr;
         }
         else {
                 sdat->shm = 0;
-                // sdat->xpxm = ...
                 goto errfsdat;
         }
         surf->dat = sdat;
@@ -231,8 +229,7 @@ void xlibhwsurffree (HWSURFACE *surf)
                         shmdt(sdat->xshminf.shmaddr);
                         shmctl(sdat->xshminf.shmid, IPC_RMID, 0);
                 }
-                if (sdat->xshmimg) XDestroyImage(sdat->xshmimg);
-                //if (sdat->xpxm)    XFreePixmap(dat.xdisp, sdat->xpxm);
+                if (sdat->ximg) XDestroyImage(sdat->ximg);
                 free(sdat);
         }
 }
