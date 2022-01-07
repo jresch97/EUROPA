@@ -25,7 +25,7 @@
 #include "winsys.h"
 
 struct DXWINDOW {
-        const WINSYSDRV *drv;
+        const WINSYS *sys;
 };
 
 #endif

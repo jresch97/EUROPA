@@ -109,7 +109,7 @@ void xlibpoll ()
                                     gwin->h != xe.xconfigure.height) {
                                         gwin->w = xe.xconfigure.width;
                                         gwin->h = xe.xconfigure.height;
-                                        nsurf = hwsurfalloc(RGBA32,
+                                        nsurf = hwsurfalloc(gwin->surf->pxfmt,
                                                             gwin->w, gwin->h);
                                         if (nsurf) {
                                                 hwsurffree(gwin->surf);
@@ -134,9 +134,9 @@ int xlibwinalloc (WINDOW *win)
                                          0, 0, 0);
         if (!wdat->xwin) goto errfwdat;
         XSelectInput(dat.xdisp, wdat->xwin, StructureNotifyMask);
+        XSetWindowBackgroundPixmap(dat.xdisp, wdat->xwin, None);
         XStoreName(dat.xdisp, wdat->xwin, win->title);
         XMapWindow(dat.xdisp, wdat->xwin);
-        xlibwinpos(wdat->xwin, &win->x, &win->y);
         win->dat = wdat;
         gwin = win;
         return 1;

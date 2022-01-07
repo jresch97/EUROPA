@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <window.h>
-#include <platform.h>
 #include <math.h>
 
 #define WINTITLE   "EUROPA"
@@ -33,50 +32,32 @@
 int main(void)
 {
         WINDOW *win;
-        int     x, y, w, h, xx, yy, c, i, *px;
-
-        /* Initialize default windowing system. */
+        int     c, i, x, y, w, h, nx, ny, nw, nh, xx, yy, xxx, yyy, *px, *npx;
+        i = x = y = w = h = 0; px = NULL;
         defwinsysinit();
-
-        /* Allocates a software window. */
         win = winalloc(WINTITLE, WINPOSUND, WINPOSUND, WINWIDTH, WINHEIGHT);
-        assert(win != NULL);
-        //winallocsys(winsys, ...);
-
-        printf("win=%p\n", (void*)win);
-
-        i = 0;
         while (1) {
-                winpos(win, &x, &y);   /* Retrieve window position. */
-                winsz(win, &w, &h);    /* Retrieve window size. */
-                px = (int*)winpx(win); /* Retrieve window pixels as (int*). */
-
-                printf("x=%d,y=%d,w=%d,h=%d\n", x, y, w, h);
-
-                /* Write to window back buffer memory. */
+                winpos(win, &nx, &ny);
+                winsz (win, &nw, &nh);
+                npx = (int*)winpx(win);
+                if (x != nx || y != ny || w != nw || h != nh || px != npx) {
+                        x = nx; y = ny; w = nw; h = nh; px = npx;
+                        printf("x=%d,y=%d,w=%d,h=%d,px=%p\n",
+                               x, y, w, h, (void*)npx);
+                }
                 for (yy = 0; yy < h; yy++) {
                         for (xx = 0; xx < w; xx++) {
-                                /* INPUTS */
-                                int xxx = xx + i;
-                                int yyy = yy + i;
-                                /* SEQUENCE */
+                                xxx = xx + i; yyy = yy + i;
                                 c = (xxx ^ ((int)(sin(xxx + yyy))) ^ yyy);
-                                /* ITERATOR & BLUE MASK */
                                 c = (c + i) & 0xff;
-                                /* MAP BLUE -> GRAYSCALE */
                                 px[xx + yy * w] = c + c * 0x100 + c * 0x10000;
                         }
                 }
-                
-                winswap(win);    /* Swap front/back buffers. */
-                defwinsyspoll(); /* Poll events from default windowing system. */
                 i++;
+                winswap(win);
+                defwinsyspoll();
         }
-
-        winfree(win); /* Free window. */
-
-        /* Terminate default windowing system. */
+        winfree(win);
         defwinsysterm();
-
         return EXIT_SUCCESS;
 }

@@ -25,7 +25,7 @@
 #include "winsys.h"
 
 struct VKWINDOW {
-        const WINSYSDRV *drv;
+        const WINSYS *sys;
 };
 
 #endif

@@ -22,8 +22,10 @@
 #ifndef EUROPA_GLWINDOW_H
 #define EUROPA_GLWINDOW_H
 
+#include "winsys.h"
+
 struct GLWINDOW {
-        const WINSYSDRV *drv;
+        const WINSYS *sys;
 };
 
 #endif

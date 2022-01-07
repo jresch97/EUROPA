@@ -1,6 +1,6 @@
 CC = gcc
 AR = ar
-CFLAGS = -std=c99 -pedantic -Wall -fPIC -I../
+CFLAGS = -std=c99 -pedantic -Wall -fPIC -O2 -I../
 ARFLAGS = rcs
 LDFLAGS = -lX11 -lXext
 SRC = os.c winsys.c window.c surface.c hwsurface.c xlibwinsys.c
