@@ -39,6 +39,9 @@
 #define WINICON    (IDI_APPLICATION)
 #define WINCURSOR  (IDC_ARROW)
 
+#define WINPTR(hWnd) ((WINDOW*)GetWindowLongPtr(hWnd, GWLP_USERDATA))
+#define WINDAT(win)  ((WIN32_WINDAT*)win->dat)
+
 typedef struct WIN32_DAT {
         HINSTANCE hInstance;
 } WIN32_DAT;
@@ -54,8 +57,10 @@ typedef struct WIN32_WINDAT {
 static int     win32_regwc   ();
 static void    win32_resxy   (WINDOW *win);
 static void    win32_pxfmt   (PXFMT *pxfmt);
-static HBITMAP win32_diballoc(HDC hdc, BITMAPINFO *inf, int w, int h, PXFMT *pxfmt, void **px);
-static LRESULT WndProc       (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+static HBITMAP win32_diballoc(HDC hdc, BITMAPINFO *inf, int w, int h,
+                              PXFMT *pxfmt, void **px);
+static LRESULT win32_wndproc (HWND hWnd, UINT uMsg,
+                              WPARAM wParam, LPARAM lParam);
 
 static WIN32_DAT d;
 
@@ -73,7 +78,7 @@ int win32_regwc()
         wc.hIconSm       = LoadIcon(NULL, WINICON);
         wc.hCursor       = LoadCursor(NULL, WINCURSOR);
         wc.hbrBackground = (HBRUSH)BLACK_BRUSH + 1;
-        wc.lpfnWndProc   = WndProc;
+        wc.lpfnWndProc   = win32_wndproc;
         if (!RegisterClassExA(&wc)) return 0;
         r = TRUE;
         return 1;
@@ -185,7 +190,7 @@ void win32_winfree(WINDOW *win)
         assert(win != NULL);
         assert(d.hInstance != NULL);
         if (win) {
-                wd = (WIN32_WINDAT*)win->dat;
+                wd = WINDAT(win);
                 if (wd->hWnd)    DestroyWindow(wd->hWnd);
                 if (wd->hBitmap) DeleteObject(wd->hBitmap);
                 if (wd->px)      VirtualFree(wd->px, 0, MEM_RELEASE);
@@ -216,7 +221,7 @@ void win32_winswap(WINDOW *win)
         WIN32_WINDAT* wd;
         assert(win != NULL);
         assert(d.hInstance != NULL);
-        wd = (WIN32_WINDAT*)win->dat;
+        wd = WINDAT(win);
         StretchDIBits(wd->hdc,
                       0, 0,
                       win->w, win->h,
@@ -228,35 +233,31 @@ void win32_winswap(WINDOW *win)
                       SRCCOPY);
 }
 
-LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT win32_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
         WINDOW       *win;
         WIN32_WINDAT *wd;
+        LONG_PTR      wlp;
         switch (uMsg) {
-        case WM_CREATE: {
-                SetWindowLongPtr(
-                        hWnd, GWLP_USERDATA,
-                        (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
+        case WM_CREATE:
+                wlp = (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams;
+                SetWindowLongPtr(hWnd, GWLP_USERDATA, wlp);
                 break;
-        }
-        case WM_CLOSE: {
-                win = (WINDOW*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-                if (!win) break;
+        case WM_CLOSE:
+                win = WINPTR(hWnd);
+                if (!win) return 0;
                 win->open = 0;
                 break;
-        }
-        case WM_MOVE: {
-                win = (WINDOW*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-                if (!win) break;
+        case WM_MOVE:
+                win = WINPTR(hWnd);
+                if (!win) return 0;
                 win->x = LOWORD(lParam);
                 win->y = HIWORD(lParam);
                 break;
-        }
-        case WM_SIZE: {
-                win = (WINDOW*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-                if (!win || !win->surf) break;
-                wd = (WIN32_WINDAT*)win->dat;
-                if (!wd)  break;
+        case WM_SIZE:
+                win = WINPTR(hWnd);
+                if (!win || !win->dat) return 0;
+                wd = WINDAT(win);
                 win->w = LOWORD(lParam);
                 win->h = HIWORD(lParam);
                 if (wd->hBitmap) DeleteObject(wd->hBitmap);
@@ -268,7 +269,6 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                              &win->surf->pxfmt, &wd->px);
                 win->surf->px = wd->px;
                 break;
-        }
         default: 
                 return DefWindowProcA(hWnd, uMsg, wParam, lParam);
         }

@@ -27,40 +27,30 @@
 #include <window.h>
 
 #define WINTITLE  "EUROPA"
-#define WINWIDTH  64
-#define WINHEIGHT 48
+#define WINWIDTH  640
+#define WINHEIGHT 480
 
 int main(void)
 {
         const WINSYS *sys;
         WINDOW       *win;
-        WINOPTS       opts;
-        int           c[3], i;
-        c[0] = R24, c[1] = G24, c[2] = B24;
-        sys = winsysd();
+        SURFACE      *surf;
+        int           i;
+        sys  = winsysd();
         wininit(sys);
-        opts.sys   = sys;
-        opts.scale = 10.0;
-        win = winalloc(WINTITLE, WINCTR, WINCTR, WINWIDTH, WINHEIGHT, &opts);
+        win  = winalloc(WINTITLE, WINCTR, WINCTR, WINWIDTH, WINHEIGHT, NULL);
+        surf = winsurf(win);
         while (winopen(win)) {
-                surfclr(winsurf(win), 0);
-                for (i = 0; i < 10; i++) {
+                surfclr(surf, 0);
+                for (i = 0; i < 100; i++) {
                         surfln(winsurf(win),
-                               rand() % winsurf(win)->w,
-                               rand() % winsurf(win)->h,
-                               rand() % winsurf(win)->w,
-                               rand() % winsurf(win)->h,
-                               rand() + rand() * 0x100 + rand() * 0x10000);
+                               rand() % surf->w, rand() % surf->h,
+                               rand() % surf->w, rand() % surf->h,
+                               rand() + (rand() << 8) + (rand() << 16));
                 }
-                surfln(winsurf(win),
-                       0, 0,
-                       winsurf(win)->w - 1,
-                       winsurf(win)->h - 1,
+                surfln(winsurf(win), 0, 0, surf->w - 1, surf->h - 1,
                        0xffffffff);
-                surfln(winsurf(win),
-                       winsurf(win)->w - 1,
-                       0, 0,
-                       winsurf(win)->h - 1,
+                surfln(winsurf(win), surf->w - 1, 0, 0, surf->h - 1,
                        0xffffffff);
                 winswap(win);
                 winpoll(sys);
