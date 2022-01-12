@@ -40,7 +40,7 @@
 static struct utsname gutsname;
 #endif
 
-int osinit ()
+int osinit()
 {
 #ifdef PLATFORM_LINUX
         if (strlen(gutsname.sysname) > 0) return 1;
@@ -66,7 +66,7 @@ const char* osname()
         return NULL;
 }
 
-const char* osrels ()
+const char* osrels()
 {
         if (!osinit()) return NULL;
 #ifdef PLATFORM_LINUX
@@ -90,7 +90,7 @@ const char* osrels ()
         return NULL;
 }
 
-const char* osvers ()
+const char* osvers()
 {
         if (!osinit()) return NULL;
 #ifdef PLATFORM_LINUX
@@ -99,7 +99,7 @@ const char* osvers ()
         return NULL;
 }
 
-const char* osarch ()
+const char* osarch()
 {
         if (!osinit()) return NULL;
 #ifdef PLATFORM_LINUX
@@ -108,7 +108,7 @@ const char* osarch ()
         return NULL;
 }
 
-const char* osmach ()
+const char* osmach()
 {
         if (!osinit()) return NULL;
 #ifdef PLATFORM_LINUX
@@ -117,7 +117,7 @@ const char* osmach ()
         return NULL;
 }
 
-const char* osuser ()
+const char* osuser()
 {
 #ifdef PLATFORM_LINUX
         return getlogin();
