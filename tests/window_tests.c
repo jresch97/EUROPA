@@ -33,21 +33,25 @@ int main(void)
 {
         const WINSYS *sys;
         WINDOW       *win;
-        int     c, i = 0, x, y, w, h, xx, yy, xi, yi, *px;
+        WINOPTS       opts;
+        int           c, i = 0, x, y, w, h, xx, yy, xi, yi, *px;
         sys = winsysd();
         wininit(sys);
-        win = winalloc(WINTITLE, WINXYUND, WINXYUND, WINWIDTH, WINHEIGHT);
+        opts.sys   = sys;
+        opts.scale = 2.0;
+        win = winalloc(WINTITLE, WINUDF, WINUDF, WINWIDTH, WINHEIGHT, &opts);
         while (winopen(win)) {
                 winxy(win, &x, &y);
                 winsz(win, &w, &h);
                 px = (int*)winpx(win);
                 printf("x=%d,y=%d,w=%d,h=%d,px=%p\n", x, y, w, h, (void*)px);
-                for (yy = 0; yy < h; yy++) {
-                        for (xx = 0; xx < w; xx++) {
-                                xi = xx + i; yi = yy + i;
+                for (yy = 0; yy < win->surf->h; yy++) {
+                        for (xx = 0; xx < win->surf->w; xx++) {
+                                /*xi = xx + i; yi = yy + i;
                                 c = (xi ^ ((int)(sin(xi + yi))) ^ yi);
-                                c = (c + i) & 0xff;
-                                px[xx + yy * w] = c + c * 0x100 + c * 0x10000;
+                                c = (c + i) & 0xff;*/
+                                c = rand() + rand() * 0x100 + rand() * 0x10000;
+                                px[xx + yy * win->surf->w] = c;
                         }
                 }
                 i++;

@@ -25,7 +25,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
-WINDOW* winalloc (const char *title, int x, int y, int w, int h)
+WINDOW* winalloc (const char *title, int x, int y, int w, int h,
+                  const WINOPTS *opts)
 {
         WINDOW *win;
         PXFMT   pxfmt;
@@ -33,14 +34,15 @@ WINDOW* winalloc (const char *title, int x, int y, int w, int h)
         assert(title != NULL);
         win = malloc(sizeof(*win));
         if (!win) return NULL;
-        win->sys   = winsysd();
+        win->sys   = opts ? opts->sys ? opts->sys : winsysd() : winsysd();
         if (!win->sys) goto errfw;
         win->title = title;
         win->open  = 1;
+        win->scale = opts ? opts->scale : 1.0;
         win->x     = x;
         win->y     = y;
-        win->w     = w;
-        win->h     = h;
+        win->w     = (int)(w * win->scale);
+        win->h     = (int)(h * win->scale);
         win->surf  = win->dat = NULL;
         if (!win->sys->drv.winalloc(win, &pxfmt, &px)) goto errfw;
         win->surf  = surfwrap(pxfmt, w, h, px);
@@ -91,6 +93,11 @@ void winsz(WINDOW *win, int *w, int *h)
         *w = win->w; *h = win->h;
 }
 
+double winscale(WINDOW *win)
+{
+        return win->scale;
+}
+
 void winmov(WINDOW *win, int x, int y)
 {
         assert(win != NULL);
@@ -101,6 +108,11 @@ void winresz(WINDOW *win, int w, int h)
 {
         assert(win != NULL);
         win->sys->drv.winresz(win, w, h);
+}
+
+void winrescl(WINDOW* win, double scale)
+{
+        assert(win != NULL);
 }
 
 SURFACE* winsurf(WINDOW *win)

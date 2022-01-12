@@ -23,30 +23,38 @@
 #define EUROPA_WINDOW_H
 
 #include "winsys.h"
+#include "surface.h"
 
-#define WINXYUND -1
-#define WINXYCTR -2
-
-typedef struct SURFACE SURFACE;
+#define WINUDF -1
+#define WINCTR -2
 
 struct WINDOW {
         const WINSYS *sys;
         const char   *title;
         int           open;
+        double        scale;
         int           x, y, w, h;
         SURFACE      *surf;
         void         *dat;
 };
 
-WINDOW*     winalloc(const char *title, int x, int y, int w, int h);
+typedef struct WINOPTS {
+        const WINSYS *sys;
+        double        scale;
+} WINOPTS;
+
+WINDOW*     winalloc(const char *title, int x, int y, int w, int h,
+                     const WINOPTS *opts);
 void        winfree (WINDOW *win);
 int         winopen (WINDOW* win);
 const char* wintitle(WINDOW* win);
 void        winrettl(WINDOW *win, const char *title);
 void        winxy   (WINDOW *win, int *x, int *y);
 void        winsz   (WINDOW *win, int *w, int *h);
+double      winscale(WINDOW *win);
 void        winmov  (WINDOW *win, int  x, int  y);
 void        winresz (WINDOW *win, int  w, int  h);
+void        winrescl(WINDOW *win, double scale);
 SURFACE*    winsurf (WINDOW *win);
 void*       winpx   (WINDOW *win);
 void        winswap (WINDOW *win);

@@ -71,6 +71,7 @@ int win32_regwc()
         wc.hIcon         = LoadIcon(NULL, WINICON);
         wc.hIconSm       = LoadIcon(NULL, WINICON);
         wc.hCursor       = LoadCursor(NULL, WINCURSOR);
+        wc.hbrBackground = (HBRUSH)BLACK_BRUSH + 1;
         wc.lpfnWndProc   = WndProc;
         if (!RegisterClassExA(&wc)) return 0;
         r = TRUE;
@@ -142,15 +143,17 @@ int win32_winalloc(WINDOW *win, PXFMT *pxfmt, void **px)
         AdjustWindowRectEx(&r, WINSTYLE, FALSE, WINEXSTYLE);
         r.right  = r.right  - r.left;
         r.bottom = r.bottom - r.top;
-        r.left   = win->x == WINXYUND ? CW_USEDEFAULT : win->x;
-        r.top    = win->y == WINXYUND ? CW_USEDEFAULT : win->y;
+        r.left   = win->x == WINUDF ? CW_USEDEFAULT : win->x;
+        r.top    = win->y == WINUDF ? CW_USEDEFAULT : win->y;
         wd->hWnd = CreateWindowExA(WINEXSTYLE, WC, win->title, WINSTYLE,
                                    r.left, r.top, r.right, r.bottom,
                                    NULL, NULL, d.hInstance, win);
         wd->hdc  = GetDC(wd->hWnd);
         if (!wd->hWnd) goto errfwd;
         win32_pxfmt(pxfmt);
-        wd->hBitmap = win32_diballoc(wd->hdc, &wd->inf, win->w, win->h,
+        wd->hBitmap = win32_diballoc(wd->hdc, &wd->inf,
+                                     (int)(win->w / win->scale),
+                                     (int)(win->h / win->scale),
                                      pxfmt, &wd->px);
         if (!wd->hBitmap) goto errdw;
         *px = wd->px;
@@ -243,10 +246,11 @@ LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 win->h = HIWORD(lParam);
                 if (wd->hBitmap) DeleteObject(wd->hBitmap);
                 if (wd->px)      VirtualFree(wd->px, 0, MEM_RELEASE);
-                wd->hBitmap = win32_diballoc(wd->hdc, &wd->inf, win->w, win->h,
-                        &win->surf->pxfmt, &wd->px);
-                win->surf->w  = win->w;
-                win->surf->h  = win->h;
+                win->surf->w = (int)(win->w / win->scale);
+                win->surf->h = (int)(win->h / win->scale);
+                wd->hBitmap = win32_diballoc(wd->hdc, &wd->inf,
+                                             win->surf->w, win->surf->h,
+                                             &win->surf->pxfmt, &wd->px);
                 win->surf->px = wd->px;
                 break;
         }

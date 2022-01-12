@@ -47,8 +47,8 @@ static const WINSYS WIN32_WINSYS = {
                 &win32_winalloc,
                 &win32_winfree,
                 &win32_winrettl,
-                *win32_winmov,
-                *win32_winresz,
+                &win32_winmov,
+                &win32_winresz,
                 &win32_winswap
         }
 };
