@@ -22,9 +22,9 @@
 #ifndef EUROPA_WINSYS_H
 #define EUROPA_WINSYS_H
 
+typedef struct PXFMT    PXFMT;
 typedef struct WINSYS   WINSYS;
 typedef struct WINDOW   WINDOW;
-typedef struct PXFMT    PXFMT;
 typedef struct GLWINDOW GLWINDOW;
 typedef struct VKWINDOW VKWINDOW;
 typedef struct DXWINDOW DXWINDOW;

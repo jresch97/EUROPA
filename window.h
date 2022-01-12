@@ -24,10 +24,10 @@
 
 #include "winsys.h"
 
-typedef struct SURFACE SURFACE;
-
 #define WINXYUND -1
 #define WINXYCTR -2
+
+typedef struct SURFACE SURFACE;
 
 struct WINDOW {
         const WINSYS *sys;
