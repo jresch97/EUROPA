@@ -64,12 +64,12 @@ void surffree(SURFACE *surf)
         }
 }
 
-void surfclear(SURFACE* surf, int c)
+void surfclr(SURFACE* surf, int c)
 {
         memset(surf->px, c, surf->w * surf->h * surf->pxfmt.bypp);
 }
 
-void surfline(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
+void surfln(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
 {
         /* https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
         int dx, dy, sx, sy, e, e2, w, *px;

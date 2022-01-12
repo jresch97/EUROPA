@@ -43,25 +43,25 @@ int main(void)
         opts.scale = 10.0;
         win = winalloc(WINTITLE, WINUDF, WINUDF, WINWIDTH, WINHEIGHT, &opts);
         while (winopen(win)) {
-                surfclear(winsurf(win), 0);
+                surfclr(winsurf(win), 0);
                 for (i = 0; i < 10; i++) {
-                        surfline(winsurf(win),
-                                 rand() % winsurf(win)->w,
-                                 rand() % winsurf(win)->h,
-                                 rand() % winsurf(win)->w,
-                                 rand() % winsurf(win)->h,
-                                 rand() + rand() * 0x100 + rand() * 0x10000);
+                        surfln(winsurf(win),
+                               rand() % winsurf(win)->w,
+                               rand() % winsurf(win)->h,
+                               rand() % winsurf(win)->w,
+                               rand() % winsurf(win)->h,
+                               rand() + rand() * 0x100 + rand() * 0x10000);
                 }
-                surfline(winsurf(win),
-                         0, 0,
-                         winsurf(win)->w - 1,
-                         winsurf(win)->h - 1,
-                         0xffffffff);
-                surfline(winsurf(win),
-                         winsurf(win)->w - 1,
-                         0, 0,
-                         winsurf(win)->h - 1,
-                         0xffffffff);
+                surfln(winsurf(win),
+                       0, 0,
+                       winsurf(win)->w - 1,
+                       winsurf(win)->h - 1,
+                       0xffffffff);
+                surfln(winsurf(win),
+                       winsurf(win)->w - 1,
+                       0, 0,
+                       winsurf(win)->h - 1,
+                       0xffffffff);
                 winswap(win);
                 winpoll(sys);
         }
