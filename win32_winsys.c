@@ -52,6 +52,7 @@ typedef struct WIN32_WINDAT {
 } WIN32_WINDAT;
 
 static int     win32_regwc   ();
+static void    win32_resxy   (WINDOW *win);
 static void    win32_pxfmt   (PXFMT *pxfmt);
 static HBITMAP win32_diballoc(HDC hdc, BITMAPINFO *inf, int w, int h, PXFMT *pxfmt, void **px);
 static LRESULT WndProc       (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -76,6 +77,21 @@ int win32_regwc()
         if (!RegisterClassExA(&wc)) return 0;
         r = TRUE;
         return 1;
+}
+
+static void win32_resxy(WINDOW *win)
+{
+        int s;
+        if      (win->x == WINDEF) win->x = CW_USEDEFAULT;
+        else if (win->x == WINCTR) {
+                s = GetSystemMetrics(SM_CXSCREEN);
+                win->x = win->x + ((s - win->w) / 2);
+        }
+        if      (win->y == WINDEF) win->y = CW_USEDEFAULT;
+        else if (win->y == WINCTR) {
+                s = GetSystemMetrics(SM_CYSCREEN);
+                win->y = win->y + ((s - win->h) / 2);
+        }
 }
 
 void win32_pxfmt(PXFMT *pxfmt)
@@ -137,16 +153,15 @@ int win32_winalloc(WINDOW *win, PXFMT *pxfmt, void **px)
         if (!win || !d.hInstance || !pxfmt || !px) return 0;
         wd = malloc(sizeof(*wd));
         if (!wd) return 0;
+        win32_resxy(win);
         r.left   = r.top = 0;
         r.right  = win->w;
         r.bottom = win->h;
         AdjustWindowRectEx(&r, WINSTYLE, FALSE, WINEXSTYLE);
         r.right  = r.right  - r.left;
         r.bottom = r.bottom - r.top;
-        r.left   = win->x == WINDEF ? CW_USEDEFAULT : win->x;
-        r.top    = win->y == WINDEF ? CW_USEDEFAULT : win->y;
         wd->hWnd = CreateWindowExA(WINEXSTYLE, WC, win->title, WINSTYLE,
-                                   r.left, r.top, r.right, r.bottom,
+                                   win->x, win->y, r.right, r.bottom,
                                    NULL, NULL, d.hInstance, win);
         wd->hdc  = GetDC(wd->hWnd);
         if (!wd->hWnd) goto errfwd;
