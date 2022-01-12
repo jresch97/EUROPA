@@ -41,7 +41,7 @@ int main(void)
         wininit(sys);
         opts.sys   = sys;
         opts.scale = 10.0;
-        win = winalloc(WINTITLE, WINUDF, WINUDF, WINWIDTH, WINHEIGHT, &opts);
+        win = winalloc(WINTITLE, WINDEF, WINDEF, WINWIDTH, WINHEIGHT, &opts);
         while (winopen(win)) {
                 surfclr(winsurf(win), 0);
                 for (i = 0; i < 10; i++) {

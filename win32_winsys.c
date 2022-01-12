@@ -143,8 +143,8 @@ int win32_winalloc(WINDOW *win, PXFMT *pxfmt, void **px)
         AdjustWindowRectEx(&r, WINSTYLE, FALSE, WINEXSTYLE);
         r.right  = r.right  - r.left;
         r.bottom = r.bottom - r.top;
-        r.left   = win->x == WINUDF ? CW_USEDEFAULT : win->x;
-        r.top    = win->y == WINUDF ? CW_USEDEFAULT : win->y;
+        r.left   = win->x == WINDEF ? CW_USEDEFAULT : win->x;
+        r.top    = win->y == WINDEF ? CW_USEDEFAULT : win->y;
         wd->hWnd = CreateWindowExA(WINEXSTYLE, WC, win->title, WINSTYLE,
                                    r.left, r.top, r.right, r.bottom,
                                    NULL, NULL, d.hInstance, win);

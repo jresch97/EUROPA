@@ -25,7 +25,7 @@
 #include "winsys.h"
 #include "surface.h"
 
-#define WINUDF -1
+#define WINDEF -1
 #define WINCTR -2
 
 struct WINDOW {

@@ -64,11 +64,13 @@ void surffree(SURFACE *surf)
         }
 }
 
+/* TODO: What if PXFMT.bipp is not 2^N? */
 void surfclr(SURFACE* surf, int c)
 {
         memset(surf->px, c, surf->w * surf->h * surf->pxfmt.bypp);
 }
 
+/* TODO: What if PXFMT.bipp is not 32? */
 void surfln(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
 {
         /* https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
@@ -81,6 +83,7 @@ void surfln(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
                 while (y1 != e) px[x1 + y1 * w] = c, y1 += sy;
         }
         else if (y1 == y2) {
+                /* Can be optimized with memset? */
                 e = x2 + sx;
                 while (x1 != e) px[x1 + y1 * w] = c, x1 += sx;
         }
