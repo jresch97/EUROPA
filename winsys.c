@@ -25,57 +25,45 @@
 #include <stdlib.h>
 
 #include "platform.h"
-#include "xlibwinsys.h"
+#include "xlib_winsys.h"
+#include "win32_winsys.h"
 
 static const WINSYS* const WSS[] = {
 #ifdef PLATFORM_LINUX
-        &XLIBWINSYS,
+        &XLIB_WINSYS,
+#endif
+#ifdef PLATFORM_WIN32
+        &WIN32_WINSYS,
 #endif
         NULL
 };
 
-const WINSYS* winsys (const char *name)
-{
-        // lookup by name
-        return NULL;
-}
-
-int winsysinit (const WINSYS *sys)
-{
-        assert(sys != NULL);
-        return sys->drv.initcb(sys);
-}
-
-void winsysterm (const WINSYS *sys)
-{
-        assert(sys != NULL);
-        sys->drv.termcb(sys);
-}
-
-void winsyspoll (const WINSYS *sys)
-{
-        assert(sys != NULL);
-        sys->drv.pollcb(sys);
-}
-
-const WINSYS* defwinsys ()
+const WINSYS* winsysd()
 {
         static const WINSYS* dws = NULL;
         if (!dws) dws = WSS[0];
         return dws;
 }
 
-int defwinsysinit()
+const WINSYS* winsysn(const char *name)
 {
-        return winsysinit(defwinsys());
+        return NULL;
 }
 
-void defwinsysterm()
+int wininit(const WINSYS *sys)
 {
-        winsysterm(defwinsys());
+        assert(sys != NULL);
+        return sys->drv.init(sys);
 }
 
-void defwinsyspoll()
+void winterm(const WINSYS *sys)
 {
-        winsyspoll(defwinsys());
+        assert(sys != NULL);
+        sys->drv.term(sys);
+}
+
+void winpoll(const WINSYS *sys)
+{
+        assert(sys != NULL);
+        sys->drv.poll(sys);
 }

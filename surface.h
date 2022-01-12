@@ -26,12 +26,12 @@
 
 typedef struct SURFACE {
         PXFMT pxfmt;
-        int w, h, ownpx;
-        void *px;
+        int   w, h, ownpx;
+        void *dat, *px;
 } SURFACE;
 
-SURFACE* surfalloc (PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap  (PXFMT pxfmt, int w, int h, void *px);
-void     surffree  (SURFACE *surf);
+SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
+SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
+void     surffree (SURFACE *surf);
 
 #endif

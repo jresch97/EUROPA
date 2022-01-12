@@ -25,18 +25,20 @@
 
 int main(int argc, char *argv[])
 {
-        const char *name, *vers, *arch, *mach, *user;
+        const char *name, *rels, *vers, *arch, *mach, *user;
 
         /* Implicitly called but can be called if desired. */
         if (!osinit()) return EXIT_FAILURE;
 
         name = osname(); /* Gets OS name such as "Linux". */
+        rels = osrels(); /* Gets OS release such as "Vista SP2". */
         vers = osvers(); /* Gets OS kernel version such as "X.Y.Z". */
         arch = osarch(); /* Gets OS architecture such as "x86_64". */
         mach = osmach(); /* Gets OS machine/network name. */
         user = osuser(); /* Gets OS login username. */
 
         printf("osname=%s\n", name);
+        printf("osrels=%s\n", rels);
         printf("osvers=%s\n", vers);
         printf("osarch=%s\n", arch);
         printf("osmach=%s\n", mach);

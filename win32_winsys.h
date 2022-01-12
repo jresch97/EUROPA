@@ -19,38 +19,37 @@
  *
  */
 
-#ifndef EUROPA_XLIBWINSYS_H
-#define EUROPA_XLIBWINSYS_H
+#ifndef EUROPA_WIN32_WINSYS_H
+#define EUROPA_WIN32_WINSYS_H
 
 #include "platform.h"
 
-#ifdef PLATFORM_LINUX
+#ifdef PLATFORM_WIN32
 
 #include "winsys.h"
 
-int  xlibinit        ();
-void xlibterm        ();
-void xlibpoll        ();
-int  xlibshmav       ();
-int  xlibshmvers     (int *maj, int *min, int *pxmav);
-int  xlibshmpxmav    ();
-int  xlibwinalloc    (WINDOW *win);
-void xlibwinfree     (WINDOW *win);
-void xlibwinswap     (WINDOW *win);
-int  xlibhwsurfalloc (HWSURFACE *surf);
-void xlibhwsurffree  (HWSURFACE *surf);
+int  win32_init    ();
+void win32_term    ();
+void win32_poll    ();
+int  win32_winalloc(WINDOW *win, PXFMT *pxfmt, void **px);
+void win32_winfree (WINDOW *win);
+void win32_winrettl(WINDOW* win, const char* title);
+void win32_winmov  (WINDOW* win, int x, int y);
+void win32_winresz (WINDOW* win, int w, int h);
+void win32_winswap (WINDOW *win);
 
-static const WINSYS XLIBWINSYS = {
-        "x11/xlib",
+static const WINSYS WIN32_WINSYS = {
+        "win32",
         {
-                &xlibinit,
-                &xlibterm,
-                &xlibpoll,
-                &xlibwinalloc,
-                &xlibwinfree,
-                &xlibwinswap,
-                &xlibhwsurfalloc,
-                &xlibhwsurffree
+                &win32_init,
+                &win32_term,
+                &win32_poll,
+                &win32_winalloc,
+                &win32_winfree,
+                &win32_winrettl,
+                *win32_winmov,
+                *win32_winresz,
+                &win32_winswap
         }
 };
 

@@ -19,20 +19,38 @@
  *
  */
 
-#ifndef EUROPA_HWSURFACE_H
-#define EUROPA_HWSURFACE_H
+#ifndef EUROPA_XLIB_WINSYS_H
+#define EUROPA_XLIB_WINSYS_H
+
+#include "platform.h"
+
+#ifdef PLATFORM_LINUX
 
 #include "winsys.h"
-#include "pxfmt.h"
 
-struct HWSURFACE {
-        const WINSYS *sys;
-        PXFMT         pxfmt;
-        int           w, h;
-        void         *px, *dat;
+int  xlib_init    ();
+void xlib_term    ();
+void xlib_poll    ();
+int  xlib_shmav   ();
+int  xlib_shmvers (int *maj, int *min, int *pxmav);
+int  xlib_shmpxmav();
+int  xlib_winalloc(WINDOW *win);
+void xlib_winfree (WINDOW *win);
+void xlib_winswap (WINDOW *win);
+
+static const WINSYS XLIB_WINSYS = {
+        "x11/xlib",
+        {
+                &xlib_init,
+                &xlib_term,
+                &xlib_poll,
+                &xlib_winalloc,
+                &xlib_winfree,
+                &xlib_winswap,
+                /* ... */
+        }
 };
 
-HWSURFACE* hwsurfalloc (PXFMT pxfmt, int w, int h);
-void       hwsurffree  (HWSURFACE *surf);
+#endif
 
 #endif

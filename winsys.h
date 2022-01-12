@@ -22,35 +22,32 @@
 #ifndef EUROPA_WINSYS_H
 #define EUROPA_WINSYS_H
 
-typedef struct WINSYS    WINSYS;
-typedef struct WINDOW    WINDOW;
-typedef struct GLWINDOW  GLWINDOW;
-typedef struct VKWINDOW  VKWINDOW;
-typedef struct DXWINDOW  DXWINDOW;
-typedef struct HWSURFACE HWSURFACE;
+typedef struct WINSYS   WINSYS;
+typedef struct WINDOW   WINDOW;
+typedef struct PXFMT    PXFMT;
+typedef struct GLWINDOW GLWINDOW;
+typedef struct VKWINDOW VKWINDOW;
+typedef struct DXWINDOW DXWINDOW;
 
 struct WINSYS {
         const char *name;
         const struct {
-                int  (*initcb)        ();
-                void (*termcb)        ();
-                void (*pollcb)        ();
-                int  (*winalloccb)    (WINDOW *win);
-                void (*winfreecb)     (WINDOW *win);
-                void (*winswapcb)     (WINDOW *win);
-                int  (*hwsurfalloccb) (HWSURFACE *surf);
-                void (*hwsurffreecb)  (HWSURFACE *surf);
+                int  (*init)    ();
+                void (*term)    ();
+                void (*poll)    ();
+                int  (*winalloc)(WINDOW *win, PXFMT *pxfmt, void **px);
+                void (*winfree) (WINDOW *win);
+                void (*winrettl)(WINDOW *win, const char *title);
+                void (*winmov)  (WINDOW *win, int x, int y);
+                void (*winresz) (WINDOW *win, int w, int h);
+                void (*winswap) (WINDOW *win);
         } drv;
 };
 
-const WINSYS* winsys     (const char *name);
-int           winsysinit (const WINSYS *sys);
-void          winsysterm (const WINSYS *sys);
-void          winsyspoll (const WINSYS *sys);
-
-const WINSYS* defwinsys     ();
-int           defwinsysinit ();
-void          defwinsysterm ();
-void          defwinsyspoll ();
+const WINSYS* winsysd();
+const WINSYS* winsysn(const char *name);
+int           wininit(const WINSYS *sys);
+void          winterm(const WINSYS *sys);
+void          winpoll(const WINSYS *sys);
 
 #endif
