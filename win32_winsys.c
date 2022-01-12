@@ -168,7 +168,9 @@ void win32_winfree(WINDOW *win)
         assert(d.hInstance != NULL);
         if (win) {
                 wd = (WIN32_WINDAT*)win->dat;
-                if (wd->hWnd) DestroyWindow(wd->hWnd);
+                if (wd->hWnd)    DestroyWindow(wd->hWnd);
+                if (wd->hBitmap) DeleteObject(wd->hBitmap);
+                if (wd->px)      VirtualFree(wd->px, 0, MEM_RELEASE);
                 free(wd);
         }
 }
