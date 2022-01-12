@@ -27,7 +27,8 @@
 
 SURFACE* surfalloc(PXFMT pxfmt, int w, int h)
 {
-        SURFACE* surf = malloc(sizeof(*surf));
+        SURFACE *surf;
+        surf = malloc(sizeof(*surf));
         if (!surf) return NULL;
         surf->pxfmt = pxfmt;
         surf->w     = w;
@@ -43,7 +44,7 @@ errfs:  free(surf);
 
 SURFACE* surfwrap(PXFMT pxfmt, int w, int h, void *px)
 {
-        SURFACE* surf;
+        SURFACE *surf;
         assert(px != NULL);
         surf = malloc(sizeof(*surf));
         if (!surf) return NULL;

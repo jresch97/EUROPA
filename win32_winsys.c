@@ -232,6 +232,7 @@ void win32_winswap(WINDOW *win)
                       &wd->inf,
                       DIB_RGB_COLORS,
                       SRCCOPY);
+        Sleep(1);
 }
 
 LRESULT win32_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
