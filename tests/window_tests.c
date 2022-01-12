@@ -22,39 +22,46 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <window.h>
 
 #define WINTITLE  "EUROPA"
-#define WINWIDTH  640
-#define WINHEIGHT 480
+#define WINWIDTH  64
+#define WINHEIGHT 48
 
 int main(void)
 {
         const WINSYS *sys;
         WINDOW       *win;
         WINOPTS       opts;
-        int           c, i = 0, x, y, w, h, xx, yy, xi, yi, *px;
+        int           c[3], i;
+        c[0] = R24, c[1] = G24, c[2] = B24;
         sys = winsysd();
         wininit(sys);
         opts.sys   = sys;
-        opts.scale = 2.0;
+        opts.scale = 10.0;
         win = winalloc(WINTITLE, WINUDF, WINUDF, WINWIDTH, WINHEIGHT, &opts);
         while (winopen(win)) {
-                winxy(win, &x, &y);
-                winsz(win, &w, &h);
-                px = (int*)winpx(win);
-                printf("x=%d,y=%d,w=%d,h=%d,px=%p\n", x, y, w, h, (void*)px);
-                for (yy = 0; yy < win->surf->h; yy++) {
-                        for (xx = 0; xx < win->surf->w; xx++) {
-                                /*xi = xx + i; yi = yy + i;
-                                c = (xi ^ ((int)(sin(xi + yi))) ^ yi);
-                                c = (c + i) & 0xff;*/
-                                c = rand() + rand() * 0x100 + rand() * 0x10000;
-                                px[xx + yy * win->surf->w] = c;
-                        }
+                surfclear(winsurf(win), 0);
+                for (i = 0; i < 10; i++) {
+                        surfline(winsurf(win),
+                                 rand() % winsurf(win)->w,
+                                 rand() % winsurf(win)->h,
+                                 rand() % winsurf(win)->w,
+                                 rand() % winsurf(win)->h,
+                                 rand() + rand() * 0x100 + rand() * 0x10000);
                 }
-                i++;
+                surfline(winsurf(win),
+                         0, 0,
+                         winsurf(win)->w - 1,
+                         winsurf(win)->h - 1,
+                         0xffffffff);
+                surfline(winsurf(win),
+                         winsurf(win)->w - 1,
+                         0, 0,
+                         winsurf(win)->h - 1,
+                         0xffffffff);
                 winswap(win);
                 winpoll(sys);
         }

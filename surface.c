@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 SURFACE* surfalloc(PXFMT pxfmt, int w, int h)
 {
@@ -60,5 +61,37 @@ void surffree(SURFACE *surf)
         if (surf) {
                 if (surf->ownpx && surf->px) free(surf->px);
                 free(surf);
+        }
+}
+
+void surfclear(SURFACE* surf, int c)
+{
+        memset(surf->px, c, surf->w * surf->h * surf->pxfmt.bypp);
+}
+
+void surfline(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
+{
+        /* https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
+        int dx, dy, sx, sy, e, e2, w, *px;
+        w  = surf->w, px = (int*)surf->px;
+        dx =  abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
+        dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
+        if (x1 == x2) {
+                e = y2 + sy;
+                while (y1 != e) px[x1 + y1 * w] = c, y1 += sy;
+        }
+        else if (y1 == y2) {
+                e = x2 + sx;
+                while (x1 != e) px[x1 + y1 * w] = c, x1 += sx;
+        }
+        else {
+                e = dx + dy;
+                while (1) {
+                        px[x1 + y1 * w] = c;
+                        if (x1 == x2 && y1 == y2) break;
+                        e2 = e * 2;
+                        if (e2 >= dy) e += dy, x1 += sx;
+                        if (e2 <= dx) e += dx, y1 += sy;
+                }
         }
 }
