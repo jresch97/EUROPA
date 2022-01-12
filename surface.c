@@ -65,10 +65,39 @@ void surffree(SURFACE *surf)
         }
 }
 
-/* TODO: What if PXFMT.bipp is not 2^N? */
-void surfclr(SURFACE* surf, int c)
+void* surfpx(SURFACE* surf)
 {
-        memset(surf->px, c, surf->w * surf->h * surf->pxfmt.bypp);
+        assert(surf != NULL);
+        return surf->px;
+}
+
+int* surfipx(SURFACE* surf)
+{
+        assert(surf != NULL);
+        return (int*)surf->px;
+}
+
+int surfipxr(SURFACE *surf, int x, int y)
+{
+        assert(surf != NULL);
+        assert(x >= 0 && y >= 0 && x < surf->w && y < surf->h);
+        return surfipx(surf)[x + y * surf->w];
+}
+
+void surfipxw(SURFACE* surf, int x, int y, int c)
+{
+        assert(surf != NULL);
+        assert(x >= 0 && y >= 0 && x < surf->w && y < surf->h);
+        surfipx(surf)[x + y * surf->w] = c;
+}
+
+/* TODO: What if PXFMT.bipp is not 2^N? */
+void surfclr(SURFACE *surf, int c)
+{
+        assert(surf != NULL);
+        for (int i = 0; i < surf->w * surf->h; i++) {
+                surfipx(surf)[i] = c;
+        }
 }
 
 /* TODO: What if PXFMT.bipp is not 32? */
@@ -76,22 +105,30 @@ void surfln(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
 {
         /* https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
         int dx, dy, sx, sy, e, e2, w, *px;
+        assert(surf != NULL);
+        assert(x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0 &&
+               x1 < surf->w&& x2 < surf->w&& y1 < surf->h&& y2 < surf->h);
         w  = surf->w, px = (int*)surf->px;
         dx =  abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
         dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
         if (x1 == x2) {
                 e = y2 + sy;
-                while (y1 != e) px[x1 + y1 * w] = c, y1 += sy;
+                while (y1 != e) {
+                        surfipxw(surf, x1, y1, c);
+                        y1 += sy;
+                }
         }
         else if (y1 == y2) {
-                /* Can be optimized with memset? */
                 e = x2 + sx;
-                while (x1 != e) px[x1 + y1 * w] = c, x1 += sx;
+                while (x1 != e) {
+                        surfipxw(surf, x1, y1, c);
+                        x1 += sx;
+                }
         }
         else {
                 e = dx + dy;
                 while (1) {
-                        px[x1 + y1 * w] = c;
+                        surfipxw(surf, x1, y1, c);
                         if (x1 == x2 && y1 == y2) break;
                         e2 = e * 2;
                         if (e2 >= dy) e += dy, x1 += sx;

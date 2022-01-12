@@ -33,7 +33,11 @@ typedef struct SURFACE {
 SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
 SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
 void     surffree (SURFACE *surf);
-void     surfclr  (SURFACE* surf, int c);
-void     surfln   (SURFACE* surf, int x1, int y1, int x2, int y2, int rgb);
+void*    surfpx   (SURFACE *surf);
+int*     surfipx  (SURFACE *surf);
+int      surfipxr (SURFACE *surf, int x, int y);
+void     surfipxw (SURFACE *surf, int x, int y, int c);
+void     surfclr  (SURFACE *surf, int c);
+void     surfln   (SURFACE *surf, int x1, int y1, int x2, int y2, int c);
 
 #endif
