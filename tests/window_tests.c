@@ -26,84 +26,20 @@
 #include <math.h>
 #include <window.h>
 
-#define WIN1TTL "EUROPA LINES"
-#define WIN2TTL "EUROPA CIRCLES"
-#define WINW    320
-#define WINH    240
+#define WINTTL "EUROPA"
+#define WINW    640
+#define WINH    480
 #define WIND    32
-#define WINSCL  3
-
-static double lerp(double a, double b, double t)
-{
-        return a + (b - a) * t;
-}
 
 int main(void)
 {
         const WINSYS *sys;
-        WINDOW       *win1, *win2;
-        SURFACE      *surf1, *surf2;
-        WINOPTS       winopts;
-        int           a, i, c, x, y, px, py, cx, cy, dx, dy;
-        int           mx = INT_MAX, my = INT_MAX, r, f;
-        a = f = 0;
-        sys   = winsysd();
+        WINDOW       *win;
+        sys = winsysd();
         wininit(sys);
-        winopts.sys = sys;
-        winopts.scale = WINSCL;
-        win1  = winalloc(WIN1TTL, WINCTR, WINCTR, WINW, WINH, WIND, &winopts);
-        win2  = winalloc(WIN2TTL, WINCTR, WINCTR, WINW, WINH, WIND, &winopts);
-        surf1 = winsurf(win1), surf2 = winsurf(win2);
-        while (win1 && winopen(win1) || win2 && winopen(win2)) {
-                if (win1 && winopen(win1)) {
-                        surfclr(surf1, 0);
-                        for (i = 0; i < 100; i++) {
-                                c = rand() + (rand() << 8) + (rand() << 16);
-                                surfln(winsurf(win1),
-                                       rand() % surf1->w, rand() % surf1->h,
-                                       rand() % surf1->w, rand() % surf1->h,
-                                       c);
-                        }
-                        surfln(surf1, 0, 0, surf1->w - 1, surf1->h - 1,
-                                0xffffffff);
-                        surfln(surf1, surf1->w - 1, 0, 0, surf1->h - 1,
-                                0xffffffff);
-                        winswap(win1);
-                }
-                else if (win1) {
-                        winfree(win1);
-                        win1 = NULL;
-                }
-                if (win2 && winopen(win2)) {
-                        surfclr(surf2, 0);
-                        px = 0, py = 0;
-                        r = (surf2->h / 2) - 16;
-                        cx = surf2->w / 2;
-                        cy = surf2->h / 2;
-                        for (i = 0; i <= 360; i += 2) {
-                                x = (int)(cos((double)(i + a)) * r);
-                                y = (int)(sin((double)(i + a)) * r);
-                                dx = x + cx;
-                                dy = y + cy;
-                                c  = rand() + (rand() << 8) + (rand() << 16);
-                                if (f && dx != 0 && dy != 0 &&
-                                         px != 0 && py != 0) {
-                                        surfln(surf2, dx, dy, px, py, c);
-                                }
-                                px = dx, py = dy;
-                                f = 1;
-                        }
-                        a += 32;
-                        winswap(win2);
-                }
-                else if (win2) {
-                        winfree(win2);
-                        win2 = NULL;
-                }
-                winpoll(sys);
-        }
-        winfree(win1);
-        winfree(win2);
+        win = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
+        while (winopen(win)) winpoll(sys);
+        winfree(win);
         winterm(sys);
         return EXIT_SUCCESS;
 }
