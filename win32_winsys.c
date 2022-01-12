@@ -104,7 +104,8 @@ void win32_pxfmt(PXFMT *pxfmt)
         *pxfmt = RGB32;
 }
 
-HBITMAP win32_diballoc(HDC hdc, BITMAPINFO *inf, int w, int h, PXFMT *pxfmt, void **px)
+HBITMAP win32_diballoc(HDC hdc, BITMAPINFO *inf, int w, int h,
+                       PXFMT *pxfmt, void **px)
 {
         ZeroMemory(inf, sizeof(*inf));
         inf->bmiHeader.biSize        = sizeof(*inf);
@@ -257,7 +258,7 @@ LRESULT win32_wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_SIZE:
                 win = WINPTR(hWnd);
                 if (!win || !win->dat) return 0;
-                wd = WINDAT(win);
+                wd  = WINDAT(win);
                 win->w = LOWORD(lParam);
                 win->h = HIWORD(lParam);
                 if (wd->hBitmap) DeleteObject(wd->hBitmap);
