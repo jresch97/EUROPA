@@ -33,7 +33,7 @@ struct WINDOW {
         const char   *title;
         int           open;
         double        scale;
-        int           x, y, w, h;
+        int           x, y, w, h, d;
         SURFACE      *surf;
         void         *dat;
 };
@@ -43,7 +43,7 @@ typedef struct WINOPTS {
         double        scale;
 } WINOPTS;
 
-WINDOW*     winalloc(const char *title, int x, int y, int w, int h,
+WINDOW*     winalloc(const char *title, int x, int y, int w, int h, int d,
                      const WINOPTS *opts);
 void        winfree (WINDOW *win);
 int         winopen (WINDOW* win);

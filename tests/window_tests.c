@@ -26,9 +26,10 @@
 #include <math.h>
 #include <window.h>
 
-#define WINTITLE  "EUROPA"
-#define WINWIDTH  640
-#define WINHEIGHT 480
+#define WINTTL "EUROPA"
+#define WINW   640
+#define WINH   480
+#define WIND   32
 
 int main(void)
 {
@@ -38,7 +39,7 @@ int main(void)
         int           i;
         sys  = winsysd();
         wininit(sys);
-        win  = winalloc(WINTITLE, WINCTR, WINCTR, WINWIDTH, WINHEIGHT, NULL);
+        win  = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
         while (winopen(win)) {
                 surfclr(surf, 0);

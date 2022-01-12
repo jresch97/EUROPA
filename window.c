@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-WINDOW* winalloc (const char *title, int x, int y, int w, int h,
+WINDOW* winalloc (const char *title, int x, int y, int w, int h, int d,
                   const WINOPTS *opts)
 {
         WINDOW *win;
@@ -43,6 +43,7 @@ WINDOW* winalloc (const char *title, int x, int y, int w, int h,
         win->y     = y;
         win->w     = (int)(w * win->scale);
         win->h     = (int)(h * win->scale);
+        win->d     = d;
         win->surf  = win->dat = NULL;
         if (!win->sys->drv.winalloc(win, &pxfmt, &px)) goto errfw;
         win->surf  = surfwrap(pxfmt, w, h, px);
