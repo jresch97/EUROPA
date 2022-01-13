@@ -39,8 +39,8 @@
 #define XLIB_XWINHTSZ  (257)
 #define XLIB_SHMPERM   (0600)
 #define XLIB_XWINCLASS (InputOutput)
-#define XLIB_INPUTMASK (StructureNotifyMask)
 #define XLIB_ATTRMASK  (CWBackPixmap)
+#define XLIB_INPUTMASK (StructureNotifyMask)
 
 #define WINDAT(win) ((XLIB_WINDAT*)win->dat)
 
@@ -264,8 +264,7 @@ void xlib_poll()
                                 w = xe.xconfigure.width;
                                 h = xe.xconfigure.height;
                                 if (win->w == w && win->h == h) break;
-                                win->w = w;
-                                win->h = h;
+                                win->w = w, win->h = h;
                                 xlib_ximgfree(win);
                                 if (xlib_ximgalloc(win)) {
                                         surf->w  = win->w;
