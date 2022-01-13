@@ -35,10 +35,23 @@ int main(void)
 {
         const WINSYS *sys;
         WINDOW       *win;
-        sys = winsysd();
+        SURFACE      *surf;
+        int           x, y, i;
+        sys  = winsysd();
         wininit(sys);
-        win = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
-        while (winopen(win)) winpoll(sys);
+        win  = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
+        surf = winsurf(win);
+        i    = 0;
+        while (winopen(win)) {
+                for (y = 0; y < surf->h; y++) {
+                        for (x = 0; x < surf->w; x++) {
+                                surfipxw(surf, x, y, (x + i) ^ (y + i));
+                        }
+                }
+                winswap(win);
+                winpoll(sys);
+                i++;
+        }
         winfree(win);
         winterm(sys);
         return EXIT_SUCCESS;

@@ -34,7 +34,7 @@ void xlib_poll    ();
 int  xlib_shmav   ();
 int  xlib_shmvers (int *maj, int *min, int *pxmav);
 int  xlib_shmpxmav();
-int  xlib_winalloc(WINDOW *win);
+int  xlib_winalloc(WINDOW *win, PXFMT *pxfmt, void **px);
 void xlib_winfree (WINDOW *win);
 void xlib_winswap (WINDOW *win);
 
@@ -46,6 +46,9 @@ static const WINSYS XLIB_WINSYS = {
                 &xlib_poll,
                 &xlib_winalloc,
                 &xlib_winfree,
+                0,
+                0,
+                0,
                 &xlib_winswap,
                 /* ... */
         }

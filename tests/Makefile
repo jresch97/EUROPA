@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -std=c99 -pedantic -Wall -O2 -I../
 LDFLAGS = -L../ -l:libeuropa.a -lm -lX11 -lXext
 
-all: clean europa os_tests.out window_tests.out surface_tests.out hwsurface_tests.out
+all: clean europa os_tests.out window_tests.out surface_tests.out
 
 europa:
 	cd ../ && make && cd -
@@ -20,6 +20,6 @@ hwsurface_tests.out: hwsurface_tests.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f os_tests.out window_tests.out surface_tests.out hwsurface_tests.out
+	rm -f os_tests.out window_tests.out surface_tests.out
 
 .PHONY: clean

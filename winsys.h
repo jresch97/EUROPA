@@ -22,7 +22,8 @@
 #ifndef EUROPA_WINSYS_H
 #define EUROPA_WINSYS_H
 
-typedef struct PXFMT    PXFMT;
+#include "pxfmt.h"
+
 typedef struct WINSYS   WINSYS;
 typedef struct WINDOW   WINDOW;
 typedef struct GLWINDOW GLWINDOW;
