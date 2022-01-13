@@ -151,7 +151,7 @@ Window xlib_xwinalloc(WINDOW *win)
         return xwin;
 }
 
-int xlib_ximgalloc (WINDOW *win)
+int xlib_ximgalloc(WINDOW *win)
 {
         XLIB_WINDAT *wd;
         XVisualInfo  xvinf;
@@ -230,7 +230,7 @@ int xlib_init()
         return 1;
 }
 
-void xlib_term ()
+void xlib_term()
 {
         assert(d.xdpy != NULL);
         if (d.xdpy) {
@@ -240,7 +240,7 @@ void xlib_term ()
         }
 }
 
-void xlib_poll ()
+void xlib_poll()
 {
         static Window  xwin;
         static WINDOW *win;
@@ -282,7 +282,7 @@ void xlib_poll ()
         }
 }
 
-int xlib_winalloc (WINDOW *win, PXFMT *pxfmt, void **px)
+int xlib_winalloc(WINDOW *win, PXFMT *pxfmt, void **px)
 {
         XLIB_WINDAT *wd;
         assert(win != NULL);
@@ -301,7 +301,7 @@ errfwd: free(wd);
         return 0;
 }
 
-void xlib_winfree (WINDOW *win)
+void xlib_winfree(WINDOW *win)
 {
         XLIB_WINDAT *wd;
         assert(win != NULL);
@@ -313,7 +313,7 @@ void xlib_winfree (WINDOW *win)
         }
 }
 
-void xlib_winswap (WINDOW *win)
+void xlib_winswap(WINDOW *win)
 {
         XLIB_WINDAT *wd;
         assert(win != NULL);
@@ -328,13 +328,13 @@ void xlib_winswap (WINDOW *win)
         }         
 }
 
-int xlib_shmav ()
+int xlib_shmav()
 {
         assert(d.xdpy != NULL);
         return XShmQueryExtension(d.xdpy) == 1;
 }
 
-int xlib_shmvers (int *maj, int *min, int *pxmav)
+int xlib_shmvers(int *maj, int *min, int *pxmav)
 {
         int tmaj, tmin, tpxmav;
         assert(d.xdpy != NULL);
@@ -347,7 +347,7 @@ int xlib_shmvers (int *maj, int *min, int *pxmav)
         return 0;
 }
 
-int xlib_shmpxmav ()
+int xlib_shmpxmav()
 {
         int tpxmav;
         assert(d.xdpy != NULL);
