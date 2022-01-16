@@ -36,6 +36,7 @@ typedef struct timespec TIMESPEC;
 
 void deltatime(TIMESPEC *t1, TIMESPEC *t2, TIMESPEC *td)
 {
+        /* https://stackoverflow.com/a/53708448 */
         td->tv_nsec = t2->tv_nsec - t1->tv_nsec;
         td->tv_sec  = t2->tv_sec  - t1->tv_sec;
         if (td->tv_sec > 0 && td->tv_nsec < 0) {
