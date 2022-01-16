@@ -82,11 +82,12 @@ int main(void)
                 }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
-                dt = ((double)delta.tv_sec) * NSPERS + (double)delta.tv_nsec;
-                usleep((USPERS / TGTFPS) - (int)(dt / 1000.0));
+                dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
+                c = (USPERS / TGTFPS) - (int)(dt / 1000.0);
+                if (c > 0) usleep(c);
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
-                dt = ((double)delta.tv_sec) * NSPERS + (double)delta.tv_nsec;
+                dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
                 accum += dt;
                 if (accum >= (double)NSPERS) {
                         showfps = fps;
