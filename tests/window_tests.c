@@ -58,14 +58,13 @@ int main(void)
         WINDOW       *win;
         SURFACE      *surf;
         TIMESPEC      start, end, delta;
-        int           x, y, c, i, s, ms, us, ns, fps, showfps;
+        int           x, y, c, i, fps, showfps;
         double        dt, accum;
         sys   = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        i = s = ms = us = ns = fps = 0;
-        showfps = -1;
+        i = fps = 0, showfps = -1;
         accum = 0.0;
         while (winopen(win)) {
                 clock_gettime(CLOCK_MONOTONIC_RAW, &start);
