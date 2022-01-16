@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
         WINDOW       *win;
         SURFACE      *surf;
         TIMESPEC      start, end, delta;
-        int           x, y, c, i, fps, tgtfps, showfps;
-        long long     dt, accum, a, b;
+        int           x, y, c, i, b, fps, tgtfps, showfps;
+        long long     dt, accum, a;
         sys  = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
                         a = (NSPERS / tgtfps) - dt;
                         b = a / NSPERS;
                         end.tv_sec  = b;
-                        end.tv_nsec = a - b;
+                        end.tv_nsec = a - (b * NSPERS);
                         if (end.tv_sec >= 0 && end.tv_nsec >= 0) {
                                 nanosleep(&end, NULL);
                         }
