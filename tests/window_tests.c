@@ -91,7 +91,9 @@ int main(int argc, char *argv[])
                                 b = a / (double)NSPERS;
                                 end.tv_sec = (int)b;
                                 end.tv_nsec = (int)(a - b);
-                                nanosleep(&end, NULL);
+                                if (end.tv_sec >= 0 && end.tv_nsec >= 0) {
+                                        nanosleep(&end, NULL);
+                                }
                         }
                 }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
