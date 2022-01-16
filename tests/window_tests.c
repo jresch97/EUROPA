@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
                 deltatime(&start, &end, &delta);
                 dt = (delta.tv_sec * NSPERS) + delta.tv_nsec;
                 accum += dt;
-                if (accum >= (double)NSPERS) {
+                if (accum >= NSPERS) {
                         showfps = fps;
                         accum   = 0;
                         fps     = 0;
