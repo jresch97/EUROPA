@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         SURFACE      *surf;
         TIMESPEC      start, end, delta;
         int           x, y, c, i, fps, tgtfps, showfps;
-        double        dt, accum;
+        double        dt, accum, a, b;
         sys   = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
@@ -86,9 +86,13 @@ int main(int argc, char *argv[])
                 deltatime(&start, &end, &delta);
                 dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
                 if (tgtfps > 0) {
-                        c = (int)((double)USPERS / (double)tgtfps) -
-                                (dt / 1000.0);
-                        if (c > 0) usleep(c);
+                        a = ((double)NSPERS / (double)tgtfps) - dt;
+                        if (a > 0.0) {
+                                b = a / (double)NSPERS;
+                                end.tv_sec = (int)b;
+                                end.tv_nsec = (int)(a - b);
+                                nanosleep(&end, NULL);
+                        }
                 }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
