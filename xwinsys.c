@@ -61,6 +61,7 @@ typedef struct XDAT {
         GC       xgc;
         Visual  *xvis;
         XWINHT  *xwht[XWINHTSZ];
+        Atom     xwmdm;
 } XDAT;
 
 typedef struct XWINDAT {
@@ -156,10 +157,11 @@ Window xwincreate(WINDOW *win)
         xwin = XCreateWindow(d.xdpy, d.xroot, win->x, win->y, win->w, win->h,
                              0, d.xd, XWC, d.xvis, XATTRMASK, &xattr);
         if (!xwin) return xwin;
-        XSelectInput(d.xdpy, xwin, XINPUTMASK);
-        XStoreName  (d.xdpy, xwin, win->cap);
-        XMapWindow  (d.xdpy, xwin);
-        xwinhtins   (xwin, win);
+        XSetWMProtocols(d.xdpy, xwin, &d.xwmdm, 1);
+        XSelectInput   (d.xdpy, xwin, XINPUTMASK);
+        XStoreName     (d.xdpy, xwin, win->cap);
+        XMapWindow     (d.xdpy, xwin);
+        xwinhtins      (xwin, win);
         return xwin;
 }
 
@@ -230,6 +232,7 @@ int xinit()
         d.xd    = DefaultDepth(d.xdpy, d.xscr);
         d.xvis  = DefaultVisual(d.xdpy, d.xscr);
         d.xgc   = DefaultGC(d.xdpy, d.xscr);
+        d.xwmdm = XInternAtom(d.xdpy, "WM_DELETE_WINDOW", False);
         if (!xwinhtinit()) goto err;
         return 1;
 err:    d.xdpy = NULL;
@@ -256,6 +259,16 @@ void xpoll()
         while (XPending(d.xdpy)) {
                 XNextEvent(d.xdpy, &xe);
                 switch (xe.type) {
+                        case ClientMessage: {
+                                if (xwin != xe.xclient.window) {
+                                        xwin = xe.xclient.window;
+                                        win  = xwinhtwin(xwin);
+                                }
+                                if (xe.xclient.data.l[0] == d.xwmdm) {
+                                        win->open = 0;
+                                }
+                                break;
+                        }
                         case ConfigureNotify: {
                                 if (xwin != xe.xconfigure.window) {
                                         xwin = xe.xconfigure.window;
@@ -272,6 +285,8 @@ void xpoll()
                                 ximgalloc(win->surf);
                                 break;
                         }
+                        default:
+                                break;
                 }
         }
 }
@@ -305,15 +320,17 @@ void xwinfree(WINDOW *win)
 
 void xwinswap(WINDOW *win)
 {
+        SURFACE  *surf;
         XWINDAT  *wd;
         XSURFDAT *sd;
         assert(win != NULL);
         assert(d.xdpy != NULL);
+        surf = win->surf;
         wd = XWD(win);
-        sd = XSD(win->surf);
+        sd = XSD(surf);
         if (sd->useshm) {
                 XShmPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg,
-                             0, 0, 0, 0, win->w, win->h, 0);
+                             0, 0, 0, 0, surf->w, surf->h, 0);
         }
         else {
                 /* XCopyArea(...) */
