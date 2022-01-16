@@ -66,7 +66,7 @@ int main(void)
                 for (y = 0; y < surf->h; y++) {
                         for (x = 0; x < surf->w; x++) {
                                 c = ((x + i) ^ (y + i)) & 0xff;
-                                surfipxw(surf, x, y, c);
+                                ((int*)surf->px)[x + y * surf->w] = c;
                         }
                 }
                 winswap(win);
