@@ -22,6 +22,13 @@
 #ifndef EUROPA_PLATFORM_H
 #define EUROPA_PLATFORM_H
 
+/**
+ * 
+ * The PLATFORM module is concerned with the amalgamation of compile-time
+ * platform specifications.
+ * 
+ */
+
 #ifdef _WIN32
 #define PLATFORM_WIN32
 #elif  __linux__

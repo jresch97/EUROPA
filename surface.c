@@ -28,13 +28,17 @@
 SURFACE* surfalloc(PXFMT pxfmt, int w, int h)
 {
         SURFACE *surf;
+        assert(w > 0 && h > 0);
         surf = malloc(sizeof(*surf));
         if (!surf) return NULL;
+        surf->sys   = NULL;
         surf->pxfmt = pxfmt;
         surf->w     = w;
         surf->h     = h;
+        surf->pxsz  = w * h;
+        surf->bysz  = w * h * pxfmt.bypp;
         surf->ownpx = 1;
-        surf->px    = malloc(w * h * pxfmt.bypp);
+        surf->px    = malloc(surf->bysz);
         surf->dat   = NULL;
         if (!surf->px) goto errfs;
         return surf;
@@ -46,21 +50,53 @@ SURFACE* surfwrap(PXFMT pxfmt, int w, int h, void *px)
 {
         SURFACE *surf;
         assert(px != NULL);
+        assert(w > 0 && h > 0);
         surf = malloc(sizeof(*surf));
         if (!surf) return NULL;
+        surf->sys   = NULL;
         surf->pxfmt = pxfmt;
         surf->w     = w;
         surf->h     = h;
+        surf->pxsz  = w * h;
+        surf->bysz  = w * h * pxfmt.bypp;
         surf->ownpx = 0;
+        surf->dat   = NULL;
         surf->px    = px;
         return surf;
+}
+
+SURFACE* surfallocs(const WINSYS *sys, PXFMT *pxfmt, int w, int h)
+{
+        SURFACE *surf;
+        assert(w > 0 && h > 0);
+        surf = malloc(sizeof(*surf));
+        if (!surf) return NULL;
+        surf->sys   = sys ? sys : winsysd();
+        memset(&surf->pxfmt, 0, sizeof(PXFMT));
+        surf->w     = w;
+        surf->h     = h;
+        surf->pxsz  = w * h;
+        surf->bysz  = 0;
+        surf->ownpx = 1;
+        surf->dat   = surf->px = NULL;
+        if (!sys->drv.surfalloc(surf, pxfmt)) goto errfs;
+        return surf;
+errfs:  free(surf);
+        return NULL;
+}
+
+SURFACE* surfallocd(PXFMT *pxfmt, int w, int h)
+{
+        assert(w > 0 && h > 0);
+        return surfallocs(NULL, pxfmt, w, h);
 }
 
 void surffree(SURFACE *surf)
 {
         assert(surf != NULL);
         if (surf) {
-                if (surf->ownpx && surf->px) free(surf->px);
+                if (surf->sys) surf->sys->drv.surffree(surf);
+                else if (surf->ownpx && surf->px) free(surf->px);
                 free(surf);
         }
 }
@@ -94,9 +130,10 @@ void surfipxw(SURFACE* surf, int x, int y, int c)
 /* TODO: What if PXFMT.bipp is not 2^N? */
 void surfclr(SURFACE *surf, int c)
 {
+        int i;
         assert(surf != NULL);
-        for (int i = 0; i < surf->w * surf->h; i++) {
-                surfipx(surf)[i] = c;
+        for (i = 0; i < surf->pxsz; i++) {
+                ((int*)surf->px)[i] = c;
         }
 }
 
@@ -104,11 +141,10 @@ void surfclr(SURFACE *surf, int c)
 void surfln(SURFACE *surf, int x1, int y1, int x2, int y2, int c)
 {
         /* https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
-        int dx, dy, sx, sy, e, e2, w, *px;
+        int dx, dy, sx, sy, e, e2;
         assert(surf != NULL);
         assert(x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0 &&
-               x1 < surf->w&& x2 < surf->w&& y1 < surf->h&& y2 < surf->h);
-        w  = surf->w, px = (int*)surf->px;
+               x1 < surf->w && x2 < surf->w && y1 < surf->h && y2 < surf->h);
         dx =  abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
         dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
         if (x1 == x2) {

@@ -25,28 +25,24 @@
 #include <assert.h>
 #include <stdlib.h>
 
-WINDOW* winalloc (const char *title, int x, int y, int w, int h, int d,
+WINDOW* winalloc (const char *cap, int x, int y, int w, int h, int d,
                   const WINOPTS *opts)
 {
         WINDOW *win;
-        PXFMT   pxfmt;
-        void   *px;
-        assert(title != NULL);
         win = malloc(sizeof(*win));
         if (!win) return NULL;
         win->sys   = opts ? opts->sys ? opts->sys : winsysd() : winsysd();
         if (!win->sys) goto errfw;
-        win->title = title;
-        win->open  = 1;
-        win->scale = opts ? opts->scale : 1.0;
-        win->x     = x;
-        win->y     = y;
-        win->w     = (int)(w * win->scale);
-        win->h     = (int)(h * win->scale);
-        win->d     = d;
-        win->surf  = win->dat = NULL;
-        if (!win->sys->drv.winalloc(win, &pxfmt, &px)) goto errfw;
-        win->surf  = surfwrap(pxfmt, w, h, px);
+        win->cap  = cap;
+        win->open = 1;
+        win->x    = x;
+        win->y    = y;
+        win->w    = w;
+        win->h    = h;
+        win->d    = d;
+        win->dat = NULL;
+        if (!win->sys->drv.winalloc(win)) goto errfw;
+        win->surf = surfallocs(win->sys, NULL, w, h);
         if (!win->surf) goto errwf;
         return win;
 errwf:  win->sys->drv.winfree(win);
@@ -70,16 +66,16 @@ int winopen(WINDOW* win)
         return win->open;
 }
 
-const char* wintitle(WINDOW *win)
+const char* wincap(WINDOW *win)
 {
         assert(win != NULL);
-        return win->title;
+        return win->cap;
 }
 
-void winrettl(WINDOW *win, const char *title)
+void winrecap(WINDOW *win, const char *cap)
 {
         assert(win != NULL);
-        win->sys->drv.winrettl(win, title);
+        win->sys->drv.winrecap(win, cap);
 }
 
 void winxy(WINDOW *win, int* x, int* y)
@@ -94,11 +90,6 @@ void winsz(WINDOW *win, int *w, int *h)
         *w = win->w; *h = win->h;
 }
 
-double winscale(WINDOW *win)
-{
-        return win->scale;
-}
-
 void winmov(WINDOW *win, int x, int y)
 {
         assert(win != NULL);
@@ -109,11 +100,6 @@ void winresz(WINDOW *win, int w, int h)
 {
         assert(win != NULL);
         win->sys->drv.winresz(win, w, h);
-}
-
-void winrescl(WINDOW* win, double scale)
-{
-        assert(win != NULL);
 }
 
 SURFACE* winsurf(WINDOW *win)

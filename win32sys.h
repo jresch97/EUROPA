@@ -19,51 +19,40 @@
  *
  */
 
-#include "winsys.h"
-
-#include <assert.h>
-#include <stdlib.h>
+#ifndef EUROPA_WIN32SYS_H
+#define EUROPA_WIN32SYS_H
 
 #include "platform.h"
-#include "xwinsys.h"
-#include "win32sys.h"
 
-static const WINSYS* const WSS[] = {
-#ifdef PLATFORM_LINUX
-        &XWINSYS,
-#endif
 #ifdef PLATFORM_WIN32
-        &WIN32SYS,
-#endif
-        NULL
+
+#include "winsys.h"
+
+int  win32init    ();
+void win32term    ();
+void win32poll    ();
+int  win32alloc(WINDOW *win, PXFMT *pxfmt, void **px);
+void win32free (WINDOW *win);
+void win32rettl(WINDOW* win, const char* title);
+void win32mov  (WINDOW* win, int x, int y);
+void win32resz (WINDOW* win, int w, int h);
+void win32swap (WINDOW *win);
+
+static const WINSYS WIN32SYS = {
+        "win32",
+        {
+                &win32init,
+                &win32term,
+                &win32poll,
+                &win32alloc,
+                &win32free,
+                &win32mov,
+                &win32resz,
+                &win32recap,
+                &win32swap
+        }
 };
 
-const WINSYS* winsysd()
-{
-        static const WINSYS* dws = NULL;
-        if (!dws) dws = WSS[0];
-        return dws;
-}
+#endif
 
-const WINSYS* winsysn(const char *name)
-{
-        return NULL;
-}
-
-int wininit(const WINSYS *sys)
-{
-        assert(sys != NULL);
-        return sys->drv.init(sys);
-}
-
-void winterm(const WINSYS *sys)
-{
-        assert(sys != NULL);
-        sys->drv.term(sys);
-}
-
-void winpoll(const WINSYS *sys)
-{
-        assert(sys != NULL);
-        sys->drv.poll(sys);
-}
+#endif

@@ -30,31 +30,26 @@
 
 struct WINDOW {
         const WINSYS *sys;
-        const char   *title;
-        int           open;
-        double        scale;
-        int           x, y, w, h, d;
+        const char   *cap;
+        int           x, y, w, h, d, open;
         SURFACE      *surf;
         void         *dat;
 };
 
 typedef struct WINOPTS {
         const WINSYS *sys;
-        double        scale;
 } WINOPTS;
 
-WINDOW*     winalloc(const char *title, int x, int y, int w, int h, int d,
+WINDOW*     winalloc(const char *cap, int x, int y, int w, int h, int d,
                      const WINOPTS *opts);
 void        winfree (WINDOW *win);
 int         winopen (WINDOW* win);
-const char* wintitle(WINDOW* win);
-void        winrettl(WINDOW *win, const char *title);
 void        winxy   (WINDOW *win, int *x, int *y);
 void        winsz   (WINDOW *win, int *w, int *h);
-double      winscale(WINDOW *win);
+const char* wincap  (WINDOW* win);
 void        winmov  (WINDOW *win, int  x, int  y);
 void        winresz (WINDOW *win, int  w, int  h);
-void        winrescl(WINDOW *win, double scale);
+void        winrecap(WINDOW *win, const char *cap);
 SURFACE*    winsurf (WINDOW *win);
 void*       winpx   (WINDOW *win);
 void        winswap (WINDOW *win);

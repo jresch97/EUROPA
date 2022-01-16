@@ -22,22 +22,43 @@
 #ifndef EUROPA_SURFACE_H
 #define EUROPA_SURFACE_H
 
+/**
+ * 
+ * The SURFACE module is concerned with the representation and manipulation of
+ * 2D surfaces. Surfaces are grids of arbitrarily sized and formatted data.
+ * 
+ * Provides:
+ * - Allocation of surfaces in RAM, or on the display server or window manager
+ *   for blitting acceleration.
+ * - Software routines for drawing simple shapes.
+ * 
+ */
+
 #include "pxfmt.h"
+#include "winsys.h"
 
-typedef struct SURFACE {
-        PXFMT pxfmt;
-        int   w, h, ownpx;
-        void *dat, *px;
-} SURFACE;
+struct SURFACE {
+        const WINSYS *sys;
+        PXFMT         pxfmt;
+        int           w, h, bysz, pxsz, ownpx;
+        void         *dat, *px;
+};
 
-SURFACE* surfalloc(PXFMT pxfmt, int w, int h);
-SURFACE* surfwrap (PXFMT pxfmt, int w, int h, void *px);
-void     surffree (SURFACE *surf);
-void*    surfpx   (SURFACE *surf);
-int*     surfipx  (SURFACE *surf);
-int      surfipxr (SURFACE *surf, int x, int y);
-void     surfipxw (SURFACE *surf, int x, int y, int c);
-void     surfclr  (SURFACE *surf, int c);
-void     surfln   (SURFACE *surf, int x1, int y1, int x2, int y2, int c);
+SURFACE*       surfalloc (PXFMT pxfmt, int w, int h);
+SURFACE*       surfwrap  (PXFMT pxfmt, int w, int h, void *px);
+SURFACE*       surfallocs(const WINSYS *sys, PXFMT *pxfmt, int w, int h);
+SURFACE*       surfallocd(PXFMT *pxfmt, int w, int h);
+void           surffree  (SURFACE *surf);
+void*          surfpx    (SURFACE *surf);
+unsigned char* surfbpx   (SURFACE *surf);
+unsigned char  surfbpxr  (SURFACE *surf, int x, int y, int ch);
+void           surfbpxw  (SURFACE *surf, int x, int y, int ch,
+                          unsigned char c);
+int*           surfipx   (SURFACE *surf);
+int            surfipxr  (SURFACE *surf, int x, int y);
+void           surfipxw  (SURFACE *surf, int x, int y, int c);
+void           surfclr   (SURFACE *surf, int c);
+void           surfln    (SURFACE *surf, int x1, int y1, int x2, int y2,
+                          int c);
 
 #endif

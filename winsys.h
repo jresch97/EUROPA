@@ -25,6 +25,7 @@
 #include "pxfmt.h"
 
 typedef struct WINSYS   WINSYS;
+typedef struct SURFACE  SURFACE;
 typedef struct WINDOW   WINDOW;
 typedef struct GLWINDOW GLWINDOW;
 typedef struct VKWINDOW VKWINDOW;
@@ -33,15 +34,17 @@ typedef struct DXWINDOW DXWINDOW;
 struct WINSYS {
         const char *name;
         const struct {
-                int  (*init)    ();
-                void (*term)    ();
-                void (*poll)    ();
-                int  (*winalloc)(WINDOW *win, PXFMT *pxfmt, void **px);
-                void (*winfree) (WINDOW *win);
-                void (*winrettl)(WINDOW *win, const char *title);
-                void (*winmov)  (WINDOW *win, int x, int y);
-                void (*winresz) (WINDOW *win, int w, int h);
-                void (*winswap) (WINDOW *win);
+                int  (*init)     ();
+                void (*term)     ();
+                void (*poll)     ();
+                int  (*winalloc) (WINDOW *win);
+                void (*winfree)  (WINDOW *win);
+                void (*winmov)   (WINDOW *win, int x, int y);
+                void (*winresz)  (WINDOW *win, int w, int h);
+                void (*winrecap) (WINDOW *win, const char *cap);
+                void (*winswap)  (WINDOW *win);
+                int  (*surfalloc)(SURFACE *surf, PXFMT *pxfmt);
+                void (*surffree) (SURFACE *surf);
         } drv;
 };
 

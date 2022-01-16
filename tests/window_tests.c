@@ -45,7 +45,7 @@ int main(void)
         while (winopen(win)) {
                 for (y = 0; y < surf->h; y++) {
                         for (x = 0; x < surf->w; x++) {
-                                surfipxw(surf, x, y, (x + i) ^ (y + i));
+                                surfipxw(surf, x, y, ((x + i) ^ (y + i)) & 0xff);
                         }
                 }
                 winswap(win);

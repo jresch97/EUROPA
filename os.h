@@ -22,6 +22,13 @@
 #ifndef EUROPA_OS_H
 #define EUROPA_OS_H
 
+/**
+ * 
+ * The OS module is concerned with providing information about the operating
+ * system and device hardware.
+ * 
+ */
+
 int         osinit();
 const char* osname();
 const char* osrels();
