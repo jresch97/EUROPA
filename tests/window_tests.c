@@ -32,7 +32,7 @@
 #define WINW    640
 #define WINH    480
 #define WIND    32
-#define TGTFPS  60
+#define TGTFPS  0
 #define MSPERS  1000
 #define USPERS  1000000
 #define NSPERS  1000000000
@@ -52,19 +52,20 @@ void deltatime(TIMESPEC *t1, TIMESPEC *t2, TIMESPEC *td)
         }
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
         const WINSYS *sys;
         WINDOW       *win;
         SURFACE      *surf;
         TIMESPEC      start, end, delta;
-        int           x, y, c, i, fps, showfps;
+        int           x, y, c, i, fps, tgtfps, showfps;
         double        dt, accum;
         sys   = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
         i = fps = 0, showfps = -1;
+        tgtfps = (argc > 1) ? atoi(argv[1]) : TGTFPS;
         accum = 0.0;
         while (winopen(win)) {
                 clock_gettime(CLOCK_MONOTONIC_RAW, &start);
@@ -76,6 +77,7 @@ int main(void)
                 }
                 winswap(win);
                 winpoll(sys);
+                fps++;
                 if (showfps >= 0) {
                         printf("fps=%d\n", showfps);
                         showfps = -1;
@@ -83,8 +85,11 @@ int main(void)
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
                 dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
-                c = (USPERS / TGTFPS) - (int)(dt / 1000.0);
-                if (c > 0) usleep(c);
+                if (tgtfps > 0) {
+                        c = (int)((double)USPERS / (double)tgtfps) -
+                                (dt / 1000.0);
+                        if (c > 0) usleep(c);
+                }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
                 dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
@@ -94,7 +99,7 @@ int main(void)
                         accum = 0.0;
                         fps = 0;
                 }
-                i++, fps++;
+                i++;
         }
         winfree(win);
         winterm(sys);
