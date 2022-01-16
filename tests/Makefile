@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -std=c99 -pedantic -Wall -O2 -I../
-LDFLAGS = -L../ -l:libeuropa.a -lm -lX11 -lXext
+CFLAGS = -std=c99 -pedantic -Wall -O2 -D_GNU_SOURCE -I../
+LDFLAGS = -L../ -l:libeuropa.a -lm -lX11 -lXext -lrt
 
 all: clean europa os_tests.out window_tests.out surface_tests.out
 

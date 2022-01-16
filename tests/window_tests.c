@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include <window.h>
 
 #define WINTTL "EUROPA"
@@ -31,26 +32,59 @@
 #define WINH    480
 #define WIND    32
 
+typedef struct timespec TIMESPEC;
+
+void deltatime(TIMESPEC *t1, TIMESPEC *t2, TIMESPEC *td)
+{
+        td->tv_nsec = t2->tv_nsec - t1->tv_nsec;
+        td->tv_sec  = t2->tv_sec  - t1->tv_sec;
+        if (td->tv_sec > 0 && td->tv_nsec < 0) {
+                td->tv_nsec += 1000000000, td->tv_sec--;
+        }
+        else if (td->tv_sec < 0 && td->tv_nsec > 0) {
+                td->tv_nsec -= 1000000000, td->tv_sec++;
+        }
+}
+
 int main(void)
 {
         const WINSYS *sys;
         WINDOW       *win;
         SURFACE      *surf;
-        int           x, y, i;
-        sys  = winsysd();
+        TIMESPEC      start, end, delta;
+        int           x, y, c, i, s, ms, us, ns, fps;
+        double        dt, accum;
+        sys   = winsysd();
         wininit(sys);
-        win  = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
-        surf = winsurf(win);
-        i    = 0;
+        win   = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
+        surf  = winsurf(win);
+        i     = fps = 0;
+        accum = 0.0;
         while (winopen(win)) {
+                clock_gettime(CLOCK_MONOTONIC_RAW, &start);
                 for (y = 0; y < surf->h; y++) {
                         for (x = 0; x < surf->w; x++) {
-                                surfipxw(surf, x, y, ((x + i) ^ (y + i)) & 0xff);
+                                c = ((x + i) ^ (y + i)) & 0xff;
+                                surfipxw(surf, x, y, c);
                         }
                 }
                 winswap(win);
                 winpoll(sys);
-                i++;
+                clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+                deltatime(&start, &end, &delta);
+                dt = (double)delta.tv_sec + (double)delta.tv_nsec;
+                s  = (int)(dt / 1000000000.0);
+                ms = (int)(dt / 1000000.0);
+                us = (int)(dt / 1000.0);
+                ns = (int)(dt);
+                accum += dt;
+                if (accum >= 1000000000.0) {
+                        printf("fps=%d,dt=%ds,%dms,%dus,%dns\n",
+                               fps, s, ms, us, ns);
+                        fps = 0;
+                        accum = 0.0;
+                }
+                i++, fps++;
         }
         winfree(win);
         winterm(sys);
