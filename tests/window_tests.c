@@ -26,11 +26,16 @@
 #include <math.h>
 #include <time.h>
 #include <window.h>
+#include <unistd.h>
 
-#define WINTTL "EUROPA"
+#define WINCAP "EUROPA"
 #define WINW    640
 #define WINH    480
 #define WIND    32
+#define TGTFPS  60
+#define MSPERS  1000
+#define USPERS  1000000
+#define NSPERS  1000000000
 
 typedef struct timespec TIMESPEC;
 
@@ -40,10 +45,10 @@ void deltatime(TIMESPEC *t1, TIMESPEC *t2, TIMESPEC *td)
         td->tv_nsec = t2->tv_nsec - t1->tv_nsec;
         td->tv_sec  = t2->tv_sec  - t1->tv_sec;
         if (td->tv_sec > 0 && td->tv_nsec < 0) {
-                td->tv_nsec += 1000000000, td->tv_sec--;
+                td->tv_nsec += NSPERS, td->tv_sec--;
         }
         else if (td->tv_sec < 0 && td->tv_nsec > 0) {
-                td->tv_nsec -= 1000000000, td->tv_sec++;
+                td->tv_nsec -= NSPERS, td->tv_sec++;
         }
 }
 
@@ -53,13 +58,14 @@ int main(void)
         WINDOW       *win;
         SURFACE      *surf;
         TIMESPEC      start, end, delta;
-        int           x, y, c, i, s, ms, us, ns, fps;
+        int           x, y, c, i, s, ms, us, ns, fps, showfps;
         double        dt, accum;
         sys   = winsysd();
         wininit(sys);
-        win   = winalloc(WINTTL, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
-        surf  = winsurf(win);
-        i     = fps = 0;
+        win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
+        surf = winsurf(win);
+        i = s = ms = us = ns = fps = 0;
+        showfps = -1;
         accum = 0.0;
         while (winopen(win)) {
                 clock_gettime(CLOCK_MONOTONIC_RAW, &start);
@@ -71,19 +77,22 @@ int main(void)
                 }
                 winswap(win);
                 winpoll(sys);
+                if (showfps >= 0) {
+                        printf("fps=%d\n", showfps);
+                        showfps = -1;
+                }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
-                dt = (double)delta.tv_sec + (double)delta.tv_nsec;
-                s  = (int)(dt / 1000000000.0);
-                ms = (int)(dt / 1000000.0);
-                us = (int)(dt / 1000.0);
-                ns = (int)(dt);
+                dt = ((double)delta.tv_sec) * NSPERS + (double)delta.tv_nsec;
+                usleep((USPERS / TGTFPS) - (int)(dt / 1000.0));
+                clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+                deltatime(&start, &end, &delta);
+                dt = ((double)delta.tv_sec) * NSPERS + (double)delta.tv_nsec;
                 accum += dt;
-                if (accum >= 1000000000.0) {
-                        printf("fps=%d,dt=%ds,%dms,%dus,%dns\n",
-                               fps, s, ms, us, ns);
-                        fps = 0;
+                if (accum >= (double)NSPERS) {
+                        showfps = fps;
                         accum = 0.0;
+                        fps = 0;
                 }
                 i++, fps++;
         }
