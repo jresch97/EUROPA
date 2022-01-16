@@ -32,7 +32,7 @@
 #define WINW    640
 #define WINH    480
 #define WIND    32
-#define TGTFPS  0
+#define TGTFPS  60
 #define MSPERS  1000
 #define USPERS  1000000
 #define NSPERS  1000000000
@@ -59,14 +59,13 @@ int main(int argc, char *argv[])
         SURFACE      *surf;
         TIMESPEC      start, end, delta;
         int           x, y, c, i, fps, tgtfps, showfps;
-        double        dt, accum, a, b;
-        sys   = winsysd();
+        long long     dt, accum, a, b;
+        sys  = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        i = fps = 0, showfps = -1;
+        i = fps = accum = 0, showfps = -1;
         tgtfps = (argc > 1) ? atoi(argv[1]) : TGTFPS;
-        accum = 0.0;
         while (winopen(win)) {
                 clock_gettime(CLOCK_MONOTONIC_RAW, &start);
                 for (y = 0; y < surf->h; y++) {
@@ -77,35 +76,32 @@ int main(int argc, char *argv[])
                 }
                 winswap(win);
                 winpoll(sys);
-                fps++;
+                fps++, i++;
                 if (showfps >= 0) {
                         printf("fps=%d\n", showfps);
                         showfps = -1;
                 }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
-                dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
+                dt = (delta.tv_sec * NSPERS) + delta.tv_nsec;
                 if (tgtfps > 0) {
-                        a = ((double)NSPERS / (double)tgtfps) - dt;
-                        if (a > 0.0) {
-                                b = a / (double)NSPERS;
-                                end.tv_sec = (int)b;
-                                end.tv_nsec = (int)(a - b);
-                                if (end.tv_sec >= 0 && end.tv_nsec >= 0) {
-                                        nanosleep(&end, NULL);
-                                }
+                        a = (NSPERS / tgtfps) - dt;
+                        b = a / NSPERS;
+                        end.tv_sec  = b;
+                        end.tv_nsec = a - b;
+                        if (end.tv_sec >= 0 && end.tv_nsec >= 0) {
+                                nanosleep(&end, NULL);
                         }
                 }
                 clock_gettime(CLOCK_MONOTONIC_RAW, &end);
                 deltatime(&start, &end, &delta);
-                dt = (((double)delta.tv_sec) * NSPERS) + (double)delta.tv_nsec;
+                dt = (delta.tv_sec * NSPERS) + delta.tv_nsec;
                 accum += dt;
                 if (accum >= (double)NSPERS) {
                         showfps = fps;
-                        accum = 0.0;
-                        fps = 0;
+                        accum   = 0;
+                        fps     = 0;
                 }
-                i++;
         }
         winfree(win);
         winterm(sys);
