@@ -17,6 +17,8 @@ typedef struct timespec TIMESPEC;
 
 #endif
 
+/* TODO: Handle variable frequency properly without casting to double. */
+
 long long int clkfreq()
 {
 #ifdef PLATFORM_LINUX
