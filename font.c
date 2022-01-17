@@ -43,26 +43,26 @@ const FONTSYS *fontsysn(const char *name)
         return NULL;
 }
 
-int fontinit(const FONTSYS *sys)
+int fontinit()
+{
+        return fontinits(fontsysd());
+}
+
+int fontinits(const FONTSYS *sys)
 {
         assert(sys != NULL);
         return sys->drv.init(sys);
 }
 
-int fontinitd()
+void fontterm()
 {
-        return fontinit(fontsysd());
+        fontterms(fontsysd());
 }
 
-void fontterm(const FONTSYS *sys)
+void fontterms(const FONTSYS *sys)
 {
         assert(sys != NULL);
         sys->drv.term(sys);
-}
-
-void fonttermd()
-{
-        fontterm(fontsysd());
 }
 
 FONT *fontalloc(const char *family, const char *style, int pt)

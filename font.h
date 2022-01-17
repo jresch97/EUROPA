@@ -44,9 +44,9 @@ struct FONT {
 const FONTSYS *fontsysd ();
 const FONTSYS *fontsysn (const char *name);
 int            fontinit ();
-int            fontinitd();
+int            fontinits(const FONTSYS *sys);
 void           fontterm ();
-void           fonttermd();
+void           fontterms(const FONTSYS *sys);
 FONT          *fontalloc(const char *family, const char *style, int pt);
 FONT          *fontload (const char *path, int pt);
 void           fontfree (FONT *font);

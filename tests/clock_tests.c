@@ -3,6 +3,8 @@
 
 #include "clock.h"
 
+static const long long int SLEPS = 1;
+
 int main(int argc, char *argv[])
 {
         printf("clkfreq  =%lld\n", clkfreq());
@@ -11,15 +13,15 @@ int main(int argc, char *argv[])
         printf("clkelapms=%lld\n", clkelapms());
         printf("clkelapus=%lld\n", clkelapus());
         printf("clkelapns=%lld\n", clkelapns());
-        printf("clkslept(%lld)...\n", 5 * clkfreq());
-        clkslept(5 * clkfreq());
-        printf("clksleps(5)...\n");
-        clksleps(5);
-        printf("clkslepms(5000)...\n");
-        clkslepms(5000);
-        printf("clkslepus(5000000)...\n");
-        clkslepus(5000000);
-        printf("clkslepns(5000000000)...\n");
-        clkslepns(5000000000);
+        printf("clkslept(%lld)...\n", SLEPS * clkfreq());
+        clkslept(SLEPS * clkfreq());
+        printf("clksleps(%lld)...\n", SLEPS);
+        clksleps(SLEPS);
+        printf("clkslepms(%lld)...\n", SLEPS * MSPERS);
+        clkslepms(SLEPS * MSPERS);
+        printf("clkslepus(%lld)...\n", SLEPS * USPERS);
+        clkslepus(SLEPS * USPERS);
+        printf("clkslepns(%lld)...\n", SLEPS * NSPERS);
+        clkslepns(SLEPS * NSPERS);
         return EXIT_SUCCESS;
 }

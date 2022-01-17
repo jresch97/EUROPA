@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         wininit();
         fontinit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
-        surf = winsurf(win);
+        surf = winsurf (win);
         font = fontload(FPTH, 12);
         i    = fc = 0, a = 0, fps = -1;
         tfps = argc > 1 ? atoi(argv[1]) : TFPS;
