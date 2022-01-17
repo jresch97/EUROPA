@@ -17,7 +17,7 @@ typedef struct timespec TIMESPEC;
 
 #endif
 
-/* TODO: Handle variable frequency properly without casting to double. */
+/* TODO: Handle variable frequency properly. */
 
 static double clkfreqd();
 static double clkelaptd();
