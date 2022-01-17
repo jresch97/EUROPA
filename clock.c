@@ -19,6 +19,19 @@ typedef struct timespec TIMESPEC;
 
 /* TODO: Handle variable frequency properly without casting to double. */
 
+static double clkfreqd();
+static double clkelaptd();
+
+double clkfreqd()
+{
+        return (double)clkfreq();
+}
+
+static double clkelaptd()
+{
+        return (double)clkelapt();
+}
+
 long long int clkfreq()
 {
 #ifdef PLATFORM_LINUX
@@ -48,25 +61,22 @@ long long int clkelapt()
 
 long long int clkelaps()
 {
-        return (long long int)((double)clkelapt() / (double)clkfreq());
+        return (long long int)(clkelaptd() / clkfreqd());
 }
 
 long long int clkelapms()
 {
-        return (long long int)((double)clkelapt() /
-                (double)(clkfreq() / (double)MSPERS));
+        return (long long int)(clkelaptd() / (clkfreqd() / (double)MSPERS));
 }
 
 long long int clkelapus()
 {
-        return (long long int)((double)clkelapt() /
-                (double)(clkfreq() / (double)USPERS));
+        return (long long int)(clkelaptd() / (clkfreqd() / (double)USPERS));
 }
 
 long long int clkelapns()
 {
-        return (long long int)((double)clkelapt() /
-                ((double)clkfreq() / (double)NSPERS));
+        return (long long int)(clkelaptd() / (clkfreqd() / (double)NSPERS));
 }
 
 void clkslept(long long int t)
@@ -93,23 +103,20 @@ void clkslept(long long int t)
 
 void clksleps(long long int s)
 {
-        clkslept((long long int)((double)s * (double)clkfreq()));
+        clkslept((long long int)((double)s * clkfreqd()));
 }
 
 void clkslepms(long long int ms)
 {
-        clkslept((long long int)((double)ms *
-                ((double)clkfreq() / (double)MSPERS)));
+        clkslept((long long int)((double)ms * (clkfreqd() / MSPERS)));
 }
 
 void clkslepus(long long int us)
 {
-        clkslept((long long int)((double)us *
-                ((double)clkfreq() / (double)USPERS)));
+        clkslept((long long int)((double)us * (clkfreqd() / USPERS)));
 }
 
 void clkslepns(long long int ns)
 {
-        clkslept((long long int)((double)ns *
-                ((double)clkfreq() / (double)NSPERS)));
+        clkslept((long long int)((double)ns * (clkfreqd() / NSPERS)));
 }
