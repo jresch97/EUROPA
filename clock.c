@@ -12,7 +12,9 @@ typedef struct timespec TIMESPEC;
 #endif
 
 #ifdef PLATFORM_WIN32
+
 #include <Windows.h>
+
 #endif
 
 long long int clkfreq()
@@ -63,4 +65,44 @@ long long int clkelapus()
 long long int clkelapns()
 {
         return clkelapt() / (clkfreq() / NSPERS);
+}
+
+void clkslept(long long int t)
+{
+#ifdef PLATFORM_LINUX
+        TIMESPEC s;
+        s.tv_sec  = t / clkfreq();
+        s.tv_nsec = t - (s.tv_sec * NSPERS);
+        nanosleep(&s, NULL);
+#endif
+#ifdef PLATFORM_WIN32
+        long long     a;
+        LARGE_INTEGER s1, s2;
+        QueryPerformanceCounter(&s1);
+        do {
+                QueryPerformanceCounter(&s2);
+                a += s2.QUAD_PART - s1.QUAD_PART;
+                s1 = s2;
+        } while (a <= t);
+#endif
+}
+
+void clksleps (long long int s)
+{
+        clkslept(s * clkfreq());
+}
+
+void clkslepms(long long int ms)
+{
+        clkslept(ms * (clkfreq() / MSPERS));
+}
+
+void clkslepus(long long int us)
+{
+        clkslept(us * (clkfreq() / USPERS));
+}
+
+void clkslepns(long long int ns)
+{
+        clkslept(ns * (clkfreq() / NSPERS));
 }

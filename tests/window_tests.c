@@ -49,12 +49,7 @@ int main(int argc, char *argv[])
         WINDOW       *win;
         SURFACE      *surf;
         int           x, y, c, i, fps, tfps, dfps;
-        long long     s, e, accum, slpt, slpc;
-#ifdef PLATFORM_LINUX
-        TIMESPEC      slp;
-#elif  PLATFORM_WIN32
-        LARGE_INTEGER slp1, slp2;
-#endif
+        long long     s, e, accum, slep;
         sys  = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
@@ -78,22 +73,8 @@ int main(int argc, char *argv[])
                 }
                 e  = clkelapt();
                 if (tfps > 0) {
-                        slpt = (clkfreq() / tfps) - (e - s);
-#ifdef PLATFORM_LINUX
-                        slp.tv_sec  = slpt / clkfreq();
-                        slp.tv_nsec = slpt - (slp.tv_sec * NSPERS);
-                        if (slp.tv_sec >= 0 && slp.tv_nsec >= 0) {
-                                nanosleep(&slp, NULL);
-                        }
-#elif  PLATFORM_WIN32
-                        slpc = 0;
-                        QueryPerformanceCounter(&sl1);
-                        do {
-                                QueryPerformanceCounter(&sl2);
-                                slpc += deltatime(&sl1, &sl2);
-                                sl1 = sl2;
-                        } while (slpc < slpt);
-#endif
+                        slep = (clkfreq() / tfps) - (e - s);
+                        clkslept(slep);
                 }
                 e  = clkelapt();
                 accum += (e - s);
