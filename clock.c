@@ -21,12 +21,12 @@ long long int clkfreq()
 {
 #ifdef PLATFORM_LINUX
         return NSPERS;
-#elif  PLATFORM_WIN32
-        static LARGE_INTEGER f = { -1 };
-        if (f.QUAD_PART < 0) {
-                if (!QueryPerformanceFrequency(&f)) return -1;
-        }
-ret:    return f.QUAD_PART;
+#endif
+#ifdef PLATFORM_WIN32
+        static LARGE_INTEGER f;
+        if (f.QuadPart > 0)                return f.QuadPart;
+        if (QueryPerformanceFrequency(&f)) return f.QuadPart;
+        return -1;
 #endif
 }
 
@@ -36,33 +36,35 @@ long long int clkelapt()
         TIMESPEC t;
         clock_gettime(CLOCK_MONOTONIC_RAW, &t);
         return t.tv_sec * NSPERS + t.tv_nsec;
-#elif  PLATFORM_WIN32
+#endif
+#ifdef PLATFORM_WIN32
         LARGE_INTEGER t;
-        if (QueryPerformanceCounter(&t)) {
-                return t.QUAD_PART;
-        }
+        if (QueryPerformanceCounter(&t)) return t.QuadPart;
         return -1;
 #endif
 }
 
 long long int clkelaps()
 {
-        return clkelapt() / clkfreq();
+        return (long long int)((double)clkelapt() / (double)clkfreq());
 }
 
 long long int clkelapms()
 {
-        return clkelapt() / (clkfreq() / MSPERS);
+        return (long long int)((double)clkelapt() /
+                (double)(clkfreq() / (double)MSPERS));
 }
 
 long long int clkelapus()
 {
-        return clkelapt() / (clkfreq() / USPERS);
+        return (long long int)((double)clkelapt() /
+                (double)(clkfreq() / (double)USPERS));
 }
 
 long long int clkelapns()
 {
-        return clkelapt() / (clkfreq() / NSPERS);
+        return (long long int)((double)clkelapt() /
+                ((double)clkfreq() / (double)NSPERS));
 }
 
 void clkslept(long long int t)
@@ -72,14 +74,16 @@ void clkslept(long long int t)
         s.tv_sec  = t / clkfreq();
         s.tv_nsec = t - (s.tv_sec * NSPERS);
         nanosleep(&s, NULL);
-#elif  PLATFORM_WIN32
+#endif
+#ifdef PLATFORM_WIN32
         long long     a;
         LARGE_INTEGER s1, s2;
         a = 0;
         QueryPerformanceCounter(&s1);
         do {
+                //printf("%lld %lld\n", a, t);
                 QueryPerformanceCounter(&s2);
-                a += s2.QUAD_PART - s1.QUAD_PART;
+                a += s2.QuadPart - s1.QuadPart;
                 s1 = s2;
         } while (a <= t);
 #endif
@@ -87,20 +91,23 @@ void clkslept(long long int t)
 
 void clksleps(long long int s)
 {
-        clkslept(s * clkfreq());
+        clkslept((long long int)((double)s * (double)clkfreq()));
 }
 
 void clkslepms(long long int ms)
 {
-        clkslept(ms * (clkfreq() / MSPERS));
+        clkslept((long long int)((double)ms *
+                ((double)clkfreq() / (double)MSPERS)));
 }
 
 void clkslepus(long long int us)
 {
-        clkslept(us * (clkfreq() / USPERS));
+        clkslept((long long int)((double)us *
+                ((double)clkfreq() / (double)USPERS)));
 }
 
 void clkslepns(long long int ns)
 {
-        clkslept(ns * (clkfreq() / NSPERS));
+        clkslept((long long int)((double)ns *
+                ((double)clkfreq() / (double)NSPERS)));
 }
