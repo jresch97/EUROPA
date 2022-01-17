@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
         surf = winsurf(win);
         i    = fc = 0, a = 0, fps = -1;
         tfps = argc > 1 ? atoi(argv[1]) : TFPS;
+        printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         while (winopen(win)) {
                 s = clkelapt();
                 for (y = 0; y < surf->h; y++) {
