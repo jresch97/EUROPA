@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
                         printf("fps=%d\n", fps);
                         fps = -1;
                 }
-                e  = clkelapt();
+                e = clkelapt();
                 if (tfps > 0) {
                         clkslept((clkfreq() / tfps) - (e - s));
                 }
