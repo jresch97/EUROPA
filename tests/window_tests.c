@@ -25,50 +25,22 @@
 #include <string.h>
 #include <math.h>
 #include <platform.h>
+#include <clock.h>
 #include <window.h>
-
-#ifdef PLATFORM_LINUX
-#include <time.h>
-#include <unistd.h>
-#endif
-
-#ifdef PLATFORM_WIN32
-#include <Windows.h>
-#endif
 
 #define WINCAP "EUROPA"
 #define WINW    640
 #define WINH    480
 #define WIND    32
 #define TGTFPS  60
-#define MSPERS  1000
-#define USPERS  1000000
-#define NSPERS  1000000000
 
 #ifdef PLATFORM_LINUX
+
+#include <time.h>
+#include <unistd.h>
+
 typedef struct timespec TIMESPEC;
 
-long long deltatime(TIMESPEC *t1, TIMESPEC *t2)
-{
-        /* https://stackoverflow.com/a/53708448 */
-        TIMESPEC td;
-        td.tv_nsec = t2->tv_nsec - t1->tv_nsec;
-        td.tv_sec  = t2->tv_sec  - t1->tv_sec;
-        if (td.tv_sec > 0 && td.tv_nsec < 0) {
-                td.tv_nsec += NSPERS, td.tv_sec--;
-        }
-        else if (td.tv_sec < 0 && td.tv_nsec > 0) {
-                td.tv_nsec -= NSPERS, td.tv_sec++;
-        }
-        return (td.tv_sec * NSPERS) + td.tv_nsec;
-}
-#endif
-
-#ifdef PLATFORM_WIN32
-long long deltatime(LARGE_INTEGER *t1, LARGE_INTEGER *t2)
-{
-        return t2->QuadPart - t1->QuadPart;
-}
 #endif
 
 int main(int argc, char *argv[])
@@ -76,14 +48,11 @@ int main(int argc, char *argv[])
         const WINSYS *sys;
         WINDOW       *win;
         SURFACE      *surf;
-#ifdef PLATFORM_LINUX
-        TIMESPEC      start, end;
-#endif
-#ifdef PLATFORM_WIN32
-        LARGE_INTEGER start, end, freqq, sl1, sl2;
-#endif
         int           x, y, c, i, fps, tgtfps, showfps;
-        long long     a, b, dt, accum, freq;
+        long long     start, end, a, b, dt, accum;
+#ifdef PLATFORM_LINUX
+        TIMESPEC slp;
+#endif
         sys  = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
@@ -91,15 +60,7 @@ int main(int argc, char *argv[])
         i = fps = accum = 0, showfps = -1;
         tgtfps = (argc > 1) ? atoi(argv[1]) : TGTFPS;
         while (winopen(win)) {
-#ifdef PLATFORM_LINUX
-                freq = NSPERS;
-                clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-#endif
-#ifdef PLATFORM_WIN32
-                QueryPerformanceFrequency(&freqq);
-                QueryPerformanceCounter(&start);
-                freq = freqq.QuadPart;
-#endif
+                start = clkelapt();
                 for (y = 0; y < surf->h; y++) {
                         for (x = 0; x < surf->w; x++) {
                                 c = ((x + i) ^ (y + i)) & 0xff;
@@ -113,25 +74,19 @@ int main(int argc, char *argv[])
                         printf("fps=%d\n", showfps);
                         showfps = -1;
                 }
-#ifdef PLATFORM_LINUX
-                clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-#endif
-#ifdef PLATFORM_WIN32
-                QueryPerformanceCounter(&end);
-#endif
-                dt = deltatime(&start, &end);
+                end = clkelapt();
+                dt  = end - start;
                 if (tgtfps > 0) {
+                        a = (clkfreq() / tgtfps) - dt;
 #ifdef PLATFORM_LINUX
-                        a = (freq / tgtfps) - dt;
-                        b = a / freq;
-                        end.tv_sec  = b;
-                        end.tv_nsec = a - (b * NSPERS);
-                        if (end.tv_sec >= 0 && end.tv_nsec >= 0) {
-                                nanosleep(&end, NULL);
+                        b = a / clkfreq();
+                        slp.tv_sec  = b;
+                        slp.tv_nsec = a - (b * NSPERS);
+                        if (slp.tv_sec >= 0 && slp.tv_nsec >= 0) {
+                                nanosleep(&slp, NULL);
                         }
 #endif
 #ifdef PLATFORM_WIN32
-                        a = (freq / tgtfps) - dt;
                         b = 0;
                         QueryPerformanceCounter(&sl1);
                         do {
@@ -141,15 +96,10 @@ int main(int argc, char *argv[])
                         } while (b < a);
 #endif
                 }
-#ifdef PLATFORM_LINUX
-                clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-#endif
-#ifdef PLATFORM_WIN32
-                QueryPerformanceCounter(&end);
-#endif
-                dt = deltatime(&start, &end);
+                end = clkelapt();
+                dt  = end - start;
                 accum += dt;
-                if (accum >= freq) {
+                if (accum >= clkfreq()) {
                         showfps = fps;
                         accum   = 0;
                         fps     = 0;
