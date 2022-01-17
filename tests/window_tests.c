@@ -60,7 +60,7 @@ long long deltatime(TIMESPEC *t1, TIMESPEC *t2)
         else if (td.tv_sec < 0 && td.tv_nsec > 0) {
                 td.tv_nsec -= NSPERS, td.tv_sec++;
         }
-        return (td.tv_sec * NSPERS) + td.tv_nsec
+        return (td.tv_sec * NSPERS) + td.tv_nsec;
 }
 #endif
 
