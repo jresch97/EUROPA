@@ -48,16 +48,16 @@
     <ClInclude Include="window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win32_winsys.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="winsys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="xlib_winsys.h">
+    <ClInclude Include="image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="image.h">
+    <ClInclude Include="xwinsys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="winsys32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,16 +71,16 @@
     <ClCompile Include="window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win32_winsys.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="winsys.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="xlib_winsys.c">
+    <ClCompile Include="image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="image.c">
+    <ClCompile Include="winsys32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xwinsys.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

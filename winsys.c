@@ -26,14 +26,14 @@
 
 #include "platform.h"
 #include "xwinsys.h"
-#include "win32sys.h"
+#include "winsys32.h"
 
 static const WINSYS* const WSS[] = {
 #ifdef PLATFORM_LINUX
         &XWINSYS,
 #endif
 #ifdef PLATFORM_WIN32
-        &WIN32SYS,
+        &WINSYS32,
 #endif
         NULL
 };

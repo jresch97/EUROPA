@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef EUROPA_WIN32SYS_H
-#define EUROPA_WIN32SYS_H
+#ifndef EUROPA_WINSYS32_H
+#define EUROPA_WINSYS32_H
 
 #include "platform.h"
 
@@ -28,28 +28,32 @@
 
 #include "winsys.h"
 
-int  win32init    ();
-void win32term    ();
-void win32poll    ();
-int  win32alloc(WINDOW *win, PXFMT *pxfmt, void **px);
-void win32free (WINDOW *win);
-void win32rettl(WINDOW* win, const char* title);
-void win32mov  (WINDOW* win, int x, int y);
-void win32resz (WINDOW* win, int w, int h);
-void win32swap (WINDOW *win);
+int  wininit32  ();
+void winterm32  ();
+void winpoll32  ();
+int  winalloc32 (WINDOW *win);
+void winfree32  (WINDOW *win);
+void winrecap32 (WINDOW *win, const char* title);
+void winmov32   (WINDOW *win, int x, int y);
+void winresz32  (WINDOW *win, int w, int h);
+void winswap32  (WINDOW *win);
+int  surfalloc32(SURFACE *surf, PXFMT *pxfmt);
+void surffree32 (SURFACE *surf);
 
-static const WINSYS WIN32SYS = {
+static const WINSYS WINSYS32 = {
         "win32",
         {
-                &win32init,
-                &win32term,
-                &win32poll,
-                &win32alloc,
-                &win32free,
-                &win32mov,
-                &win32resz,
-                &win32recap,
-                &win32swap
+                &wininit32,
+                &winterm32,
+                &winpoll32,
+                &winalloc32,
+                &winfree32,
+                &winmov32,
+                &winresz32,
+                &winrecap32,
+                &winswap32,
+                &surfalloc32,
+                &surffree32
         }
 };
 

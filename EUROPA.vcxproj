@@ -151,19 +151,19 @@
     <ClInclude Include="pxfmt.h" />
     <ClInclude Include="surface.h" />
     <ClInclude Include="vkwindow.h" />
+    <ClInclude Include="winsys32.h" />
     <ClInclude Include="window.h" />
-    <ClInclude Include="win32_winsys.h" />
     <ClInclude Include="winsys.h" />
-    <ClInclude Include="xlib_winsys.h" />
+    <ClInclude Include="xwinsys.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="image.c" />
     <ClCompile Include="os.c" />
     <ClCompile Include="surface.c" />
+    <ClCompile Include="winsys32.c" />
     <ClCompile Include="window.c" />
-    <ClCompile Include="win32_winsys.c" />
     <ClCompile Include="winsys.c" />
-    <ClCompile Include="xlib_winsys.c" />
+    <ClCompile Include="xwinsys.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
