@@ -21,8 +21,7 @@ long long int clkfreq()
 {
 #ifdef PLATFORM_LINUX
         return NSPERS;
-#endif
-#ifdef PLATFORM_WIN32
+#elif  PLATFORM_WIN32
         static LARGE_INTEGER f = { -1 };
         if (f.QUAD_PART < 0) {
                 if (!QueryPerformanceFrequency(&f)) return -1;
@@ -37,8 +36,7 @@ long long int clkelapt()
         TIMESPEC t;
         clock_gettime(CLOCK_MONOTONIC_RAW, &t);
         return t.tv_sec * NSPERS + t.tv_nsec;
-#endif
-#ifdef PLATFORM_WIN32
+#elif  PLATFORM_WIN32
         LARGE_INTEGER t;
         if (QueryPerformanceCounter(&t)) {
                 return t.QUAD_PART;
@@ -74,8 +72,7 @@ void clkslept(long long int t)
         s.tv_sec  = t / clkfreq();
         s.tv_nsec = t - (s.tv_sec * NSPERS);
         nanosleep(&s, NULL);
-#endif
-#ifdef PLATFORM_WIN32
+#elif  PLATFORM_WIN32
         long long     a;
         LARGE_INTEGER s1, s2;
         QueryPerformanceCounter(&s1);
@@ -87,7 +84,7 @@ void clkslept(long long int t)
 #endif
 }
 
-void clksleps (long long int s)
+void clksleps(long long int s)
 {
         clkslept(s * clkfreq());
 }
