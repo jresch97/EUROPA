@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
         WINDOW   *win;
         SURFACE  *surf;
         FONT     *font;
-        int       x, y, i, c, fps, fc, tfps;
         long long s, e, a;
+        int       x, y, i, c, fps, fc, tfps;
         wininit();
         fontinit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);

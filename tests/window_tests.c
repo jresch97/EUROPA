@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 {
         WINDOW   *win;
         SURFACE  *surf;
-        int       x, y, i, c, fps, fc, tfps;
         long long s, e, a;
+        int       x, y, i, c, fps, fc, tfps;
         wininit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
