@@ -34,15 +34,6 @@
 #define WIND    32
 #define TGTFPS  60
 
-#ifdef PLATFORM_LINUX
-
-#include <time.h>
-#include <unistd.h>
-
-typedef struct timespec TIMESPEC;
-
-#endif
-
 int main(int argc, char *argv[])
 {
         const WINSYS *sys;
