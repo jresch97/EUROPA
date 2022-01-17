@@ -48,20 +48,21 @@ int main(int argc, char *argv[])
         const WINSYS *sys;
         WINDOW       *win;
         SURFACE      *surf;
-        int           x, y, c, i, fps, tgtfps, showfps;
-        long long     start, end, a, b, dt, accum;
+        int           x, y, c, i, fps, tfps, dfps;
+        long long     s, e, accum, slpt, slpc;
 #ifdef PLATFORM_LINUX
-        TIMESPEC slp;
+        TIMESPEC      slp;
+#elif  PLATFORM_WIN32
+        LARGE_INTEGER slp1, slp2;
 #endif
         sys  = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        accum = 0;
-        i = fps = 0, showfps = -1;
-        tgtfps = (argc > 1) ? atoi(argv[1]) : TGTFPS;
+        i    = fps = 0, accum = 0, dfps = -1;
+        tfps = argc > 1 ? atoi(argv[1]) : TGTFPS;
         while (winopen(win)) {
-                start = clkelapt();
+                s = clkelapt();
                 for (y = 0; y < surf->h; y++) {
                         for (x = 0; x < surf->w; x++) {
                                 c = ((x + i) ^ (y + i)) & 0xff;
@@ -71,39 +72,34 @@ int main(int argc, char *argv[])
                 winswap(win);
                 winpoll(sys);
                 fps++, i++;
-                if (showfps >= 0) {
-                        printf("fps=%d\n", showfps);
-                        showfps = -1;
+                if (dfps >= 0) {
+                        printf("fps=%d\n", dfps);
+                        dfps = -1;
                 }
-                end = clkelapt();
-                dt  = end - start;
-                if (tgtfps > 0) {
-                        a = (clkfreq() / tgtfps) - dt;
+                e  = clkelapt();
+                if (tfps > 0) {
+                        slpt = (clkfreq() / tfps) - (e - s);
 #ifdef PLATFORM_LINUX
-                        b = a / clkfreq();
-                        slp.tv_sec  = b;
-                        slp.tv_nsec = a - (b * NSPERS);
+                        slp.tv_sec  = slpt / clkfreq();
+                        slp.tv_nsec = slpt - (slp.tv_sec * NSPERS);
                         if (slp.tv_sec >= 0 && slp.tv_nsec >= 0) {
                                 nanosleep(&slp, NULL);
                         }
-#endif
-#ifdef PLATFORM_WIN32
-                        b = 0;
+#elif  PLATFORM_WIN32
+                        slpc = 0;
                         QueryPerformanceCounter(&sl1);
                         do {
                                 QueryPerformanceCounter(&sl2);
-                                b += deltatime(&sl1, &sl2);
+                                slpc += deltatime(&sl1, &sl2);
                                 sl1 = sl2;
-                        } while (b < a);
+                        } while (slpc < slpt);
 #endif
                 }
-                end = clkelapt();
-                dt  = end - start;
-                accum += dt;
+                e  = clkelapt();
+                accum += (e - s);
                 if (accum >= clkfreq()) {
-                        showfps = fps;
-                        accum   = 0;
-                        fps     = 0;
+                        dfps  = fps;
+                        accum = fps = 0;
                 }
         }
         winfree(win);
