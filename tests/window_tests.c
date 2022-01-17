@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        i = fps = accum = 0, showfps = -1;
+        accum = 0;
+        i = fps = 0, showfps = -1;
         tgtfps = (argc > 1) ? atoi(argv[1]) : TGTFPS;
         while (winopen(win)) {
                 start = clkelapt();
