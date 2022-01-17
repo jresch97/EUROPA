@@ -66,17 +66,17 @@ long long int clkelaps()
 
 long long int clkelapms()
 {
-        return (long long int)(clkelaptd() / (clkfreqd() / (double)MSPERS));
+        return (long long int)(clkelaptd() / (clkfreqd() / MSPERS));
 }
 
 long long int clkelapus()
 {
-        return (long long int)(clkelaptd() / (clkfreqd() / (double)USPERS));
+        return (long long int)(clkelaptd() / (clkfreqd() / USPERS));
 }
 
 long long int clkelapns()
 {
-        return (long long int)(clkelaptd() / (clkfreqd() / (double)NSPERS));
+        return (long long int)(clkelaptd() / (clkfreqd() / NSPERS));
 }
 
 void clkslept(long long int t)
