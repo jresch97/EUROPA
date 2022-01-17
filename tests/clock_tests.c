@@ -13,9 +13,9 @@ int main(int argc, char *argv[])
         printf("clkelapms=%lld\n", clkelapms());
         printf("clkelapus=%lld\n", clkelapus());
         printf("clkelapns=%lld\n", clkelapns());
-        printf("clkslept(%lld)...\n", SLEPS * clkfreq());
+        printf("clkslept (%lld)...\n", SLEPS * clkfreq());
         clkslept(SLEPS * clkfreq());
-        printf("clksleps(%lld)...\n", SLEPS);
+        printf("clksleps (%lld)...\n", SLEPS);
         clksleps(SLEPS);
         printf("clkslepms(%lld)...\n", SLEPS * MSPERS);
         clkslepms(SLEPS * MSPERS);
