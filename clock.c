@@ -75,6 +75,7 @@ void clkslept(long long int t)
 #elif  PLATFORM_WIN32
         long long     a;
         LARGE_INTEGER s1, s2;
+        a = 0;
         QueryPerformanceCounter(&s1);
         do {
                 QueryPerformanceCounter(&s2);
