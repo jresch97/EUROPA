@@ -93,7 +93,6 @@ void clkslept(long long int t)
         a = 0;
         QueryPerformanceCounter(&s1);
         do {
-                //printf("%lld %lld\n", a, t);
                 QueryPerformanceCounter(&s2);
                 a += s2.QuadPart - s1.QuadPart;
                 s1 = s2;
