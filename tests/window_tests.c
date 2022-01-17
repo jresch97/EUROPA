@@ -48,13 +48,13 @@ int main(int argc, char *argv[])
         const WINSYS *sys;
         WINDOW       *win;
         SURFACE      *surf;
-        int           x, y, c, i, fps, tfps, dfps;
-        long long     s, e, accum, slep;
+        int           x, y, i, c, fps, fpsc, tfps;
+        long long     s, e, a;
         sys  = winsysd();
         wininit(sys);
         win  = winalloc(WINCAP, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        i    = fps = 0, accum = 0, dfps = -1;
+        i    = fpsc = 0, a = 0, fps = -1;
         tfps = argc > 1 ? atoi(argv[1]) : TGTFPS;
         while (winopen(win)) {
                 s = clkelapt();
@@ -66,22 +66,21 @@ int main(int argc, char *argv[])
                 }
                 winswap(win);
                 winpoll(sys);
-                fps++, i++;
-                if (dfps >= 0) {
-                        printf("fps=%d\n", dfps);
-                        dfps = -1;
+                if (fps >= 0) {
+                        printf("fps=%d\n", fps);
+                        fps = -1;
                 }
                 e  = clkelapt();
                 if (tfps > 0) {
-                        slep = (clkfreq() / tfps) - (e - s);
-                        clkslept(slep);
+                        clkslept((clkfreq() / tfps) - (e - s));
                 }
-                e  = clkelapt();
-                accum += (e - s);
-                if (accum >= clkfreq()) {
-                        dfps  = fps;
-                        accum = fps = 0;
+                e = clkelapt();
+                a += (e - s);
+                if (a >= clkfreq()) {
+                        fps = fpsc;
+                        a   = fpsc = 0;
                 }
+                fpsc++, i++;
         }
         winfree(win);
         winterm(sys);
