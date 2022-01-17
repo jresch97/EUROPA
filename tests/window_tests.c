@@ -40,7 +40,7 @@
 #define WINW    640
 #define WINH    480
 #define WIND    32
-#define TGTFPS  0
+#define TGTFPS  60
 #define MSPERS  1000
 #define USPERS  1000000
 #define NSPERS  1000000000

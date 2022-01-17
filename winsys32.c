@@ -56,12 +56,12 @@ typedef struct WINDAT32 {
 typedef struct SURFDAT32 {
         BITMAPINFO bmi;
         HBITMAP    hBitmap;
-        void      *mem;
 } SURFDAT32;
 
 static int     winregwc32();
 static void    winresxy32(WINDOW *win);
 static int     diballoc32(SURFACE *surf);
+static void    dibfree32 (SURFACE *surf);
 static LRESULT wndproc32 (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 static DAT32 d;
@@ -114,6 +114,7 @@ int diballoc32(SURFACE *surf)
         sd->bmi.bmiHeader.biPlanes      = 1;
         sd->bmi.bmiHeader.biBitCount    = surf->pxfmt.bipp;
         sd->bmi.bmiHeader.biCompression = BI_RGB;
+        surf->bysz = surf->w * surf->h * surf->pxfmt.bypp;
         surf->px = VirtualAlloc(NULL, surf->bysz, MEM_COMMIT, PAGE_READWRITE);
         if (!surf->px) return 0;
         sd->hBitmap = CreateDIBitmap(GetDC(NULL), &sd->bmi.bmiHeader, CBM_INIT,
@@ -122,6 +123,18 @@ int diballoc32(SURFACE *surf)
         return 1;
 errfpx: if (surf->px) VirtualFree(surf->px, 0, MEM_RELEASE);
         return 0;
+}
+
+void dibfree32(SURFACE *surf)
+{
+        SURFDAT32* sd;
+        ASSERT32();
+        assert(surf != NULL);
+        if (surf && surf->dat) {
+                sd = SD32(surf);
+                if (sd->hBitmap) DeleteObject(sd->hBitmap);
+                if (surf->px)    VirtualFree(surf->px, 0, MEM_RELEASE);
+        }
 }
 
 int wininit32()
@@ -254,6 +267,7 @@ void surffree32(SURFACE *surf)
 LRESULT wndproc32(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
         WINDOW   *win;
+        SURFACE  *surf;
         WINDAT32 *wd;
         LONG_PTR  wlp;
         switch (uMsg) {
@@ -273,21 +287,16 @@ LRESULT wndproc32(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 win->y = HIWORD(lParam);
                 break;
         case WM_SIZE:
-                win    = WP32(hWnd);
+                win        = WP32(hWnd);
                 if (!win || !win->dat) break;
-                wd     = WD32(win);
-                win->w = LOWORD(lParam);
-                win->h = HIWORD(lParam);
-                /*
-                if (wd->hBitmap) DeleteObject(wd->hBitmap);
-                if (wd->px)      VirtualFree(wd->px, 0, MEM_RELEASE);
-                win->surf->w = (int)(win->w / win->scale);
-                win->surf->h = (int)(win->h / win->scale);
-                wd->hBitmap = win32_diballoc(wd->hdc, &wd->inf,
-                                             win->surf->w, win->surf->h,
-                                             &win->surf->pxfmt, &wd->px);
-                win->surf->px = wd->px;
-                */
+                wd         = WD32(win);
+                surf       = win->surf;
+                win->w     = LOWORD(lParam);
+                win->h     = HIWORD(lParam);
+                surf->w    = win->w;
+                surf->h    = win->h;
+                dibfree32(surf);
+                diballoc32(surf);
                 break;
         default: 
                 return DefWindowProcA(hWnd, uMsg, wParam, lParam);
