@@ -74,15 +74,15 @@ typedef struct XSURFDAT {
         XShmSegmentInfo  xshm;
 } XSURFDAT;
 
-static int     xwinhtinit ();
-static void    xwinhtterm ();
-static int     xwinhtins  (Window xwin, WINDOW *win);
-static WINDOW* xwinhtwin  (Window xwin);
-static int     xwinhash   (Window xwin);
-static Window  xwincreate (WINDOW *win);
-static void    xwinxy     (Window xwin, int *x, int *y);
-static int     ximgalloc  (SURFACE *surf);
-static void    ximgfree   (SURFACE *surf);
+static int     xwinhtinit();
+static void    xwinhtterm();
+static int     xwinhtins (Window xwin, WINDOW *win);
+static WINDOW* xwinhtwin (Window xwin);
+static int     xwinhash  (Window xwin);
+static void    xwinxy    (Window xwin, int *x, int *y);
+static Window  xwincreate(WINDOW *win);
+static int     ximgalloc (SURFACE *surf);
+static void    ximgfree  (SURFACE *surf);
 
 static XDAT d;
 
@@ -148,6 +148,16 @@ int xwinhash(Window xwin)
         return xwin % XWINHTSZ;
 }
 
+void xwinxy(Window xwin, int *x, int *y)
+{
+        Window tw;
+        int    tx, ty;
+        XASSERT();
+        XTranslateCoordinates(d.xdpy, xwin, d.xroot, 0, 0, &tx, &ty, &tw);
+        if (x) *x = tx;
+        if (y) *y = ty;
+}
+
 Window xwincreate(WINDOW *win)
 {
         Window               xwin;
@@ -163,16 +173,6 @@ Window xwincreate(WINDOW *win)
         XMapWindow     (d.xdpy, xwin);
         xwinhtins      (xwin, win);
         return xwin;
-}
-
-void xwinxy(Window xwin, int *x, int *y)
-{
-        Window tw;
-        int    tx, ty;
-        XASSERT();
-        XTranslateCoordinates(d.xdpy, xwin, d.xroot, 0, 0, &tx, &ty, &tw);
-        if (x) *x = tx;
-        if (y) *y = ty;
 }
 
 int ximgalloc(SURFACE *surf)

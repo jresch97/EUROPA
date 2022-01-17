@@ -22,8 +22,31 @@
 #ifndef EUROPA_FONT_H
 #define EUROPA_FONT_H
 
-typedef struct FONT {
-        
-} FONT;
+typedef struct FONT FONT;
+
+typedef struct FONTSYS {
+        const char *name;
+        const struct {
+                int  (*init)     ();
+                void (*term)     ();
+                int  (*fontalloc)(FONT *font);
+                void (*fontfree) (FONT *font);
+        } drv;
+} FONTSYS;
+
+struct FONT {
+        const FONTSYS *sys;
+        const char    *path, *family, *style;
+        int            pt;
+        void          *dat;
+};
+
+const FONTSYS *fontsysd ();
+const FONTSYS *fontsysn (const char *name);
+int            fontinit ();
+void           fontterm ();
+FONT          *fontalloc(const char *family, const char *style, int pt);
+FONT          *fontload (const char *path, int pt);
+void           fontfree (FONT *font);
 
 #endif
