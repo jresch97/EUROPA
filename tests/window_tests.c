@@ -29,6 +29,8 @@
 #include <window.h>
 
 #define WINC "EUROPA"
+#define WINX WINCTR
+#define WINY WINCTR
 #define WINW 640
 #define WINH 480
 #define WIND 32
@@ -39,13 +41,13 @@ int main(int argc, char *argv[])
         const WINSYS *sys;
         WINDOW       *win;
         SURFACE      *surf;
-        int           x, y, i, c, fps, fpsc, tfps;
+        int           x, y, i, c, fps, fc, tfps;
         long long     s, e, a;
         sys  = winsysd();
         wininit(sys);
-        win  = winalloc(WINC, WINCTR, WINCTR, WINW, WINH, WIND, NULL);
+        win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        i    = fpsc = 0, a = 0, fps = -1;
+        i    = fc = 0, a = 0, fps = -1;
         tfps = argc > 1 ? atoi(argv[1]) : TFPS;
         while (winopen(win)) {
                 s = clkelapt();
@@ -66,10 +68,10 @@ int main(int argc, char *argv[])
                 e = clkelapt();
                 a += (e - s);
                 if (a >= clkfreq()) {
-                        fps = fpsc;
-                        a   = fpsc = 0;
+                        fps = fc;
+                        a   = fc = 0;
                 }
-                fpsc++, i++;
+                fc++, i++;
         }
         winfree(win);
         winterm(sys);
