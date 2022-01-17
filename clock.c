@@ -17,35 +17,20 @@ typedef struct timespec TIMESPEC;
 
 #endif
 
-/* TODO: Handle variable frequency properly. */
-
-static double clkfreqd();
-static double clkelaptd();
-
-double clkfreqd()
-{
-        return (double)clkfreq();
-}
-
-static double clkelaptd()
-{
-        return (double)clkelapt();
-}
-
-long long int clkfreq()
+uint64_t clkfreq()
 {
 #ifdef PLATFORM_LINUX
         return NSPERS;
 #endif
 #ifdef PLATFORM_WIN32
-        static LARGE_INTEGER f;
+        static LARGE_INTEGER f = { 0 };
         if (f.QuadPart > 0)                return f.QuadPart;
         if (QueryPerformanceFrequency(&f)) return f.QuadPart;
-        return -1;
+        return 0;
 #endif
 }
 
-long long int clkelapt()
+uint64_t clkelapt()
 {
 #ifdef PLATFORM_LINUX
         TIMESPEC t;
@@ -55,31 +40,39 @@ long long int clkelapt()
 #ifdef PLATFORM_WIN32
         LARGE_INTEGER t;
         if (QueryPerformanceCounter(&t)) return t.QuadPart;
-        return -1;
+        return 0;
 #endif
 }
 
-long long int clkelaps()
+uint64_t clkelaps()
 {
-        return (long long int)(clkelaptd() / clkfreqd());
+        uint64_t f;
+        f = clkfreq();
+        return f > 0 ? clkelapt() / f : 0;
 }
 
-long long int clkelapms()
+uint64_t clkelapms()
 {
-        return (long long int)(clkelaptd() / (clkfreqd() / MSPERS));
+        uint64_t d;
+        d = clkfreq() / MSPERS;
+        return d > 0 ? clkelapt() / d : 0;
 }
 
-long long int clkelapus()
+uint64_t clkelapus()
 {
-        return (long long int)(clkelaptd() / (clkfreqd() / USPERS));
+        uint64_t d;
+        d = clkfreq() / USPERS;
+        return d > 0 ? clkelapt() / d : 0;
 }
 
-long long int clkelapns()
+uint64_t clkelapns()
 {
-        return (long long int)(clkelaptd() / (clkfreqd() / NSPERS));
+        uint64_t d;
+        d = clkfreq() / NSPERS;
+        return d > 0 ? clkelapt() / d : 0;
 }
 
-void clkslept(long long int t)
+void clkslept(uint64_t t)
 {
 #ifdef PLATFORM_LINUX
         TIMESPEC s;
@@ -88,7 +81,7 @@ void clkslept(long long int t)
         nanosleep(&s, NULL);
 #endif
 #ifdef PLATFORM_WIN32
-        long long     a;
+        uint64_t      a;
         LARGE_INTEGER s1, s2;
         a = 0;
         QueryPerformanceCounter(&s1);
@@ -100,22 +93,22 @@ void clkslept(long long int t)
 #endif
 }
 
-void clksleps(long long int s)
+void clksleps(uint64_t s)
 {
-        clkslept((long long int)((double)s * clkfreqd()));
+        clkslept(s * clkfreq());
 }
 
-void clkslepms(long long int ms)
+void clkslepms(uint64_t ms)
 {
-        clkslept((long long int)((double)ms * (clkfreqd() / MSPERS)));
+        clkslept(ms * (clkfreq() / MSPERS));
 }
 
-void clkslepus(long long int us)
+void clkslepus(uint64_t us)
 {
-        clkslept((long long int)((double)us * (clkfreqd() / USPERS)));
+        clkslept(us * (clkfreq() / USPERS));
 }
 
-void clkslepns(long long int ns)
+void clkslepns(uint64_t ns)
 {
-        clkslept((long long int)((double)ns * (clkfreqd() / NSPERS)));
+        clkslept(ns * (clkfreq() / NSPERS));
 }

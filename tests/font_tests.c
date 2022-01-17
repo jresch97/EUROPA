@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <math.h>
 #include <platform.h>
 #include <clock.h>
@@ -43,8 +44,9 @@ int main(int argc, char *argv[])
         WINDOW   *win;
         SURFACE  *surf;
         FONT     *font;
-        long long s, e, a;
-        int       x, y, i, c, fps, fc, tfps;
+        int      c;
+        size_t   i, x, y, fps, fc, tfps;
+        uint64_t s, e, f, d, a;
         wininit();
         fontinit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
@@ -68,15 +70,17 @@ int main(int argc, char *argv[])
                 }
                 winswap(win);
                 winpoll();
-                if (fps >= 0) {
-                        printf("fps=%d\n", fps);
-                        fps = -1;
+                if (fps < UINT_MAX) {
+                        printf("fps=%lu\n", fps);
+                        fps = UINT_MAX;
                 }
-                e = clkelapt();
-                if (tfps > 0) clkslept((clkfreq() / tfps) - (e - s));
-                e = clkelapt();
+                if (tfps > 0) {
+                    e = clkelapt(), f = clkfreq() / tfps, d = e - s;
+                    if (d < f) clkslept(f - d);
+                }
+                e = clkelapt(), f = clkfreq(), d = e - s;
                 a += (e - s);
-                if (a >= clkfreq()) {
+                if (a >= f) {
                         fps = fc;
                         a   = fc = 0;
                 }

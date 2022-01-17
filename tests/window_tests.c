@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <math.h>
 #include <platform.h>
 #include <clock.h>
@@ -40,12 +41,13 @@ int main(int argc, char *argv[])
 {
         WINDOW   *win;
         SURFACE  *surf;
-        long long s, e, a;
-        int       x, y, i, c, fps, fc, tfps;
+        int      c;
+        size_t   i, x, y, fps, fc, tfps;
+        uint64_t s, e, f, d, a;
         wininit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
-        i    = fc = 0, a = 0, fps = -1;
+        i    = fc = 0, a = 0, fps = UINT_MAX;
         tfps = argc > 1 ? atoi(argv[1]) : TFPS;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         while (winopen(win)) {
@@ -58,15 +60,17 @@ int main(int argc, char *argv[])
                 }
                 winswap(win);
                 winpoll();
-                if (fps >= 0) {
-                        printf("fps=%d\n", fps);
-                        fps = -1;
+                if (fps < UINT_MAX) {
+                        printf("fps=%lu\n", fps);
+                        fps = UINT_MAX;
                 }
-                e = clkelapt();
-                if (tfps > 0) clkslept((clkfreq() / tfps) - (e - s));
-                e = clkelapt();
+                if (tfps > 0) {
+                    e = clkelapt(), f = clkfreq() / tfps, d = e - s;
+                    if (d < f) clkslept(f - d);
+                }
+                e = clkelapt(), f = clkfreq(), d = e - s;
                 a += (e - s);
-                if (a >= clkfreq()) {
+                if (a >= f) {
                         fps = fc;
                         a   = fc = 0;
                 }
