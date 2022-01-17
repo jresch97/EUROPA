@@ -40,26 +40,24 @@
 
 int main(int argc, char *argv[])
 {
-        const WINSYS  *winsys;
-        const FONTSYS *fontsys;
-        WINDOW        *win;
-        SURFACE       *surf;
-        FONT          *font;
-        int            x, y, i, c, fps, fc, tfps;
-        long long      s, e, a;
-        winsys  = winsysd();
-        fontsys = fontsysd();
-        wininit(winsys);
-        fontinit(fontsys);
+        WINDOW   *win;
+        SURFACE  *surf;
+        FONT     *font;
+        int       x, y, i, c, fps, fc, tfps;
+        long long s, e, a;
+        wininit();
+        fontinit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
         font = fontload(FPTH, 12);
         i    = fc = 0, a = 0, fps = -1;
         tfps = argc > 1 ? atoi(argv[1]) : TFPS;
-        printf("winsys->name=\"%s\"\n", winsys->name);
-        printf("fontsys->name=\"%s\"\n", fontsys->name);
-        printf("font->family=\"%s\"\nfont->style=\"%s\"\nfont->pt=%d\n",
-               font->family, font->style, font->pt);
+        printf("winsysd()->name=\"%s\"\n", winsysd()->name);
+        printf("fontsysd()->name=\"%s\"\n", fontsysd()->name);
+        printf("font->path=\"%s\"\n", font->path);
+        printf("font->family=\"%s\"\n", font->family);
+        printf("font->style=\"%s\"\n", font->style);
+        printf("font->pt=%d\n", font->pt);
         while (winopen(win)) {
                 s = clkelapt();
                 for (y = 0; y < surf->h; y++) {
@@ -69,7 +67,7 @@ int main(int argc, char *argv[])
                         }
                 }
                 winswap(win);
-                winpoll(winsys);
+                winpoll();
                 if (fps >= 0) {
                         printf("fps=%d\n", fps);
                         fps = -1;
@@ -84,7 +82,9 @@ int main(int argc, char *argv[])
                 }
                 fc++, i++;
         }
+        fontfree(font);
         winfree(win);
-        winterm(winsys);
+        fontterm();
+        winterm();
         return EXIT_SUCCESS;
 }

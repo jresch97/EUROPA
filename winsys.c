@@ -50,19 +50,34 @@ const WINSYS* winsysn(const char *name)
         return NULL;
 }
 
-int wininit(const WINSYS *sys)
+int wininit()
+{
+        return wininits(winsysd());
+}
+
+int wininits(const WINSYS *sys)
 {
         assert(sys != NULL);
         return sys->drv.init(sys);
 }
 
-void winterm(const WINSYS *sys)
+void winterm()
+{
+        winterms(winsysd());
+}
+
+void winterms(const WINSYS *sys)
 {
         assert(sys != NULL);
         sys->drv.term(sys);
 }
 
-void winpoll(const WINSYS *sys)
+void winpoll()
+{
+        winpolls(winsysd());
+}
+
+void winpolls(const WINSYS *sys)
 {
         assert(sys != NULL);
         sys->drv.poll(sys);

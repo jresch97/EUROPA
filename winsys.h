@@ -48,10 +48,13 @@ struct WINSYS {
         } drv;
 };
 
-const WINSYS* winsysd();
-const WINSYS* winsysn(const char *name);
-int           wininit(const WINSYS *sys);
-void          winterm(const WINSYS *sys);
-void          winpoll(const WINSYS *sys);
+const WINSYS* winsysd ();
+const WINSYS* winsysn (const char *name);
+int           wininit ();
+int           wininits(const WINSYS *sys);
+void          winterm ();
+void          winterms(const WINSYS *sys);
+void          winpoll ();
+void          winpolls(const WINSYS *sys);
 
 #endif

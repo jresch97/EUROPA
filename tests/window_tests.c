@@ -38,13 +38,11 @@
 
 int main(int argc, char *argv[])
 {
-        const WINSYS *sys;
-        WINDOW       *win;
-        SURFACE      *surf;
-        int           x, y, i, c, fps, fc, tfps;
-        long long     s, e, a;
-        sys  = winsysd();
-        wininit(sys);
+        WINDOW   *win;
+        SURFACE  *surf;
+        int       x, y, i, c, fps, fc, tfps;
+        long long s, e, a;
+        wininit();
         win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
         surf = winsurf(win);
         i    = fc = 0, a = 0, fps = -1;
@@ -58,7 +56,7 @@ int main(int argc, char *argv[])
                         }
                 }
                 winswap(win);
-                winpoll(sys);
+                winpoll();
                 if (fps >= 0) {
                         printf("fps=%d\n", fps);
                         fps = -1;
@@ -74,6 +72,6 @@ int main(int argc, char *argv[])
                 fc++, i++;
         }
         winfree(win);
-        winterm(sys);
+        winterm();
         return EXIT_SUCCESS;
 }

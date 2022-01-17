@@ -49,10 +49,20 @@ int fontinit(const FONTSYS *sys)
         return sys->drv.init(sys);
 }
 
+int fontinitd()
+{
+        return fontinit(fontsysd());
+}
+
 void fontterm(const FONTSYS *sys)
 {
         assert(sys != NULL);
         sys->drv.term(sys);
+}
+
+void fonttermd()
+{
+        fontterm(fontsysd());
 }
 
 FONT *fontalloc(const char *family, const char *style, int pt)

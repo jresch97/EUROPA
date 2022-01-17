@@ -68,9 +68,12 @@ int ftfontalloc(FONT *font)
         font->dat = fd;
         err = FT_New_Face(d.lib, font->path, 0, &fd->face);
         if (err) goto errffd;
+        err = FT_Set_Char_Size(fd->face, 0, font->pt, 0, 0);
+        if (err) goto errdf;
         font->family = fd->face->family_name;
         font->style  = fd->face->style_name;
         return 1;
+errdf:  if (fd->face) FT_Done_Face(fd->face);
 errffd: if (fd) free(fd);
 errret: return 0;
 }
