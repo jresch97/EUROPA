@@ -51,13 +51,12 @@ static inline int xwinhash(Window xwin)
         return xwin;
 }
 
-HASHTABX(XWINHT, XWINHTNODE, xwinht, WINDOW*, Window, int, int, xwinhash, 2)
+HASHTABX(XWINHT, XWINNODE, xwinht, WINDOW*, Window, int, int, xwinhash, 2)
 
 typedef struct XDAT {
         Display *xdpy;
         Window   xroot;
-        int      xscr;
-        int      xd;
+        int      xscr, xd;
         GC       xgc;
         Visual  *xvis;
         XWINHT  *xwht;
@@ -69,9 +68,9 @@ typedef struct XWINDAT {
 } XWINDAT;
 
 typedef struct XSURFDAT {
-        XImage          *ximg;
-        int              useshm;
-        XShmSegmentInfo  xshm;
+        XImage         *ximg;
+        int             useshm;
+        XShmSegmentInfo xshm;
 } XSURFDAT;
 
 static void   xwinxy    (Window xwin, int *x, int *y);
