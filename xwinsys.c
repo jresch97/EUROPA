@@ -34,7 +34,7 @@
 #include <X11/extensions/XShm.h>
 
 #include "window.h"
-/* #include "hashtabcx.h" */
+#include "hashtabx.h"
 
 #define XWINHTSZ   (257)
 #define XSHMPERM   (0600)
@@ -46,12 +46,12 @@
 #define XWD(win)  ((XWINDAT*)win->dat)
 #define XSD(surf) ((XSURFDAT*)surf->dat)
 
-/* TODO: Replace with HASHTABCX. */
-typedef struct XWINHT {
-        struct XWINHT *n;
-        Window         xwin;
-        WINDOW        *win;
-} XWINHT;
+static inline int xwinhash(Window xwin)
+{
+        return xwin;
+}
+
+HASHTABX(XWINHT, XWINHTNODE, xwinht, WINDOW*, Window, int, int, xwinhash, 2)
 
 typedef struct XDAT {
         Display *xdpy;
@@ -60,7 +60,7 @@ typedef struct XDAT {
         int      xd;
         GC       xgc;
         Visual  *xvis;
-        XWINHT  *xwht[XWINHTSZ];
+        XWINHT  *xwht;
         Atom     xwmdm;
 } XDAT;
 
@@ -74,79 +74,12 @@ typedef struct XSURFDAT {
         XShmSegmentInfo  xshm;
 } XSURFDAT;
 
-static int     xwinhtinit();
-static void    xwinhtterm();
-static int     xwinhtins (Window xwin, WINDOW *win);
-static WINDOW* xwinhtwin (Window xwin);
-static int     xwinhash  (Window xwin);
-static void    xwinxy    (Window xwin, int *x, int *y);
-static Window  xwincreate(WINDOW *win);
-static int     ximgalloc (SURFACE *surf);
-static void    ximgfree  (SURFACE *surf);
+static void   xwinxy    (Window xwin, int *x, int *y);
+static Window xwincreate(WINDOW *win);
+static int    ximgalloc (SURFACE *surf);
+static void   ximgfree  (SURFACE *surf);
 
 static XDAT d;
-
-int xwinhtinit()
-{
-        int i;
-        XASSERT();
-        for (i = 0; i < XWINHTSZ; i++) d.xwht[i] = NULL;
-        return 1;
-}
-
-void xwinhtterm()
-{
-        int     i;
-        XWINHT *xwht;
-        XASSERT();
-        for (i = 0; i < XWINHTSZ; i++) {
-                xwht = d.xwht[i];
-        }
-}
-
-int xwinhtins(Window xwin, WINDOW *win)
-{
-        int     h;
-        XWINHT *xwht;
-        XASSERT();
-        h    = xwinhash(xwin);
-        xwht = d.xwht[h];
-        if (!xwht) {
-                xwht = malloc(sizeof(*xwht));
-                if (!xwht) return 0;
-                xwht->xwin  = xwin;
-                xwht->win   = win;
-                d.xwht[h] = xwht;
-                return 1;
-        }
-        else {
-                while (xwht) {
-                        if (xwht->xwin == xwin) {
-                                xwht->win = win;
-                                return 1;
-                        }
-                        xwht = xwht->n;
-                }
-        }
-        return 0;
-}
-
-WINDOW* xwinhtwin(Window xwin)
-{
-        XWINHT *xwht;
-        XASSERT();
-        xwht = d.xwht[xwinhash(xwin)];
-        while (xwht) {
-                if (xwht->xwin == xwin) return xwht->win;
-                xwht = xwht->n;
-        }
-        return NULL;
-}
-
-int xwinhash(Window xwin)
-{
-        return xwin % XWINHTSZ;
-}
 
 void xwinxy(Window xwin, int *x, int *y)
 {
@@ -171,7 +104,7 @@ Window xwincreate(WINDOW *win)
         XSelectInput   (d.xdpy, xwin, XINPUTMASK);
         XStoreName     (d.xdpy, xwin, win->cap);
         XMapWindow     (d.xdpy, xwin);
-        xwinhtins      (xwin, win);
+        xwinhtins      (d.xwht, xwin, win);
         return xwin;
 }
 
@@ -233,7 +166,8 @@ int xinit()
         d.xvis  = DefaultVisual(d.xdpy, d.xscr);
         d.xgc   = DefaultGC(d.xdpy, d.xscr);
         d.xwmdm = XInternAtom(d.xdpy, "WM_DELETE_WINDOW", False);
-        if (!xwinhtinit()) goto err;
+        d.xwht  = xwinhtalloc(XWINHTSZ);
+        if (!d.xwht) goto err;
         return 1;
 err:    d.xdpy = NULL;
         return 0;
@@ -241,9 +175,11 @@ err:    d.xdpy = NULL;
 
 void xterm()
 {
-        XASSERT();
         if (d.xdpy) {
-                xwinhtterm();
+                if (d.xwht) {
+                        xwinhtfree(d.xwht);
+                        d.xwht = NULL;
+                }
                 XCloseDisplay(d.xdpy);
                 d.xdpy = NULL;
         }
@@ -262,7 +198,7 @@ void xpoll()
                         case ClientMessage: {
                                 if (xwin != xe.xclient.window) {
                                         xwin = xe.xclient.window;
-                                        win  = xwinhtwin(xwin);
+                                        xwinhtget(d.xwht, xwin, &win);
                                 }
                                 if (xe.xclient.data.l[0] == d.xwmdm) {
                                         win->open = 0;
@@ -272,7 +208,7 @@ void xpoll()
                         case ConfigureNotify: {
                                 if (xwin != xe.xconfigure.window) {
                                         xwin = xe.xconfigure.window;
-                                        win  = xwinhtwin(xwin);
+                                        xwinhtget(d.xwht, xwin, &win);
                                 }
                                 xwinxy(xwin, &win->x, &win->y);
                                 w = xe.xconfigure.width;
