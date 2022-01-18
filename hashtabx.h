@@ -37,7 +37,7 @@ typedef struct NODE { \
 \
 typedef struct NAME { \
         SIZE_T len, cap; \
-        NODE   **dat;    \
+        NODE **dat;      \
 } NAME; \
 \
 HASHTABX_EXPORT NAME* FUN ## alloc(SIZE_T cap) \
