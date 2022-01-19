@@ -37,8 +37,8 @@
 #include "pxfmt.h"
 #include "winsys.h"
 
-#include <stdbool.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 struct SURFACE {
         const WINSYS *sys;
