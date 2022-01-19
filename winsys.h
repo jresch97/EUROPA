@@ -22,39 +22,47 @@
 #ifndef EUROPA_WINSYS_H
 #define EUROPA_WINSYS_H
 
+#include <stdbool.h>
+
 #include "pxfmt.h"
 
 typedef struct WINSYS   WINSYS;
-typedef struct SURFACE  SURFACE;
 typedef struct WINDOW   WINDOW;
 typedef struct GLWINDOW GLWINDOW;
 typedef struct VKWINDOW VKWINDOW;
 typedef struct DXWINDOW DXWINDOW;
+typedef struct SURFACE  SURFACE;
 
 struct WINSYS {
         const char *name;
         const struct {
-                int  (*init)     ();
-                void (*term)     ();
-                void (*poll)     ();
-                int  (*winalloc) (WINDOW *win);
-                void (*winfree)  (WINDOW *win);
-                void (*winmov)   (WINDOW *win, int x, int y);
-                void (*winresz)  (WINDOW *win, int w, int h);
-                void (*winrecap) (WINDOW *win, const char *cap);
-                void (*winswap)  (WINDOW *win);
-                int  (*surfalloc)(SURFACE *surf, PXFMT *pxfmt);
-                void (*surffree) (SURFACE *surf);
+                bool (*init)();
+                void (*term)();
+                void (*poll)();
+                bool (*winalloc)  (WINDOW  *win);
+                void (*winfree)   (WINDOW  *win);
+                void (*winshow)   (WINDOW  *win);
+                void (*winhide)   (WINDOW  *win);
+                void (*winrecap)  (WINDOW  *win, const char *cap);
+                void (*winmove)   (WINDOW  *win, int x, int y);
+                void (*winresize) (WINDOW  *win, int w, int h);
+                void (*winswap)   (WINDOW  *win);
+                void (*winpush)   (WINDOW  *win);
+                bool (*surfalloc) (SURFACE *surf, PXFMT *pxfmt);
+                void (*surffree)  (SURFACE *surf);
         } drv;
 };
 
-const WINSYS* winsysd ();
-const WINSYS* winsysn (const char *name);
-int           wininit ();
-int           wininits(const WINSYS *sys);
-void          winterm ();
-void          winterms(const WINSYS *sys);
-void          winpoll ();
-void          winpolls(const WINSYS *sys);
+const WINSYS *winsysn  (const char *name);
+const WINSYS *winsysd  ();
+bool          wininit  ();
+bool          wininit0 ();
+bool          wininit1 (const WINSYS *sys);
+void          winterm  ();
+void          winterm0 ();
+void          winterm1 (const WINSYS *sys);
+void          winpoll  ();
+void          winpoll0 ();
+void          winpoll1 (const WINSYS *sys);
 
 #endif

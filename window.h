@@ -22,6 +22,8 @@
 #ifndef EUROPA_WINDOW_H
 #define EUROPA_WINDOW_H
 
+#include <stdbool.h>
+
 #include "winsys.h"
 #include "surface.h"
 
@@ -31,28 +33,38 @@
 struct WINDOW {
         const WINSYS *sys;
         const char   *cap;
-        int           x, y, w, h, d, open;
+        int           x, y, w, h, d;
+        bool          open;
         SURFACE      *surf;
         void         *dat;
 };
 
-typedef struct WINOPTS {
+typedef struct WINOPT {
         const WINSYS *sys;
-} WINOPTS;
+        const char   *cap;
+        int           x, y, w, h, d;
+        bool          open;
+} WINOPT;
 
-WINDOW*     winalloc(const char *cap, int x, int y, int w, int h, int d,
-                     const WINOPTS *opts);
-void        winfree (WINDOW *win);
-int         winopen (WINDOW* win);
-void        winxy   (WINDOW *win, int *x, int *y);
-void        winsz   (WINDOW *win, int *w, int *h);
-const char* wincap  (WINDOW* win);
-void        winmov  (WINDOW *win, int  x, int  y);
-void        winresz (WINDOW *win, int  w, int  h);
-void        winrecap(WINDOW *win, const char *cap);
-SURFACE*    winsurf (WINDOW *win);
-void*       winpx   (WINDOW *win);
-void        winswap (WINDOW *win);
-void        winpush (WINDOW *win);
+WINDOW     *winalloc  (const char *cap, int x, int y, int w, int h, int d);
+WINDOW     *winalloc0 (const char *cap, int x, int y, int w, int h, int d);
+WINDOW     *winalloc1 (const WINSYS *sys, const char *cap,
+                       int x, int y, int w, int h, int d);
+WINDOW     *winalloc2 (const WINOPT* opt);
+void        winfree   (WINDOW *win);
+bool        winopen   (WINDOW *win);
+void        winshow   (WINDOW *win);
+void        winhide   (WINDOW *win);
+const char *wincap    (WINDOW *win);
+void        winrecap  (WINDOW *win, const char *cap);
+void        winpos    (WINDOW *win, int *x, int *y);
+void        winmove   (WINDOW *win, int  x, int  y);
+void        winsize   (WINDOW *win, int *w, int *h);
+void        winresize (WINDOW *win, int  w, int  h);
+unsigned    windepth  (WINDOW *win);
+SURFACE    *winsurf   (WINDOW *win);
+void       *winpx     (WINDOW *win);
+void        winswap   (WINDOW *win);
+void        winpush   (WINDOW *win);
 
 #endif

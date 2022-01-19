@@ -19,16 +19,15 @@
  *
  */
 
-#include "winsys.h"
-
 #include <assert.h>
 #include <stdlib.h>
 
-#include "platform.h"
+#include "winsys.h"
 #include "xwinsys.h"
 #include "winsys32.h"
+#include "platform.h"
 
-static const WINSYS* const WSS[] = {
+static const WINSYS* const W[] = {
 #ifdef PLATFORM_LINUX
         &XWINSYS,
 #endif
@@ -38,24 +37,29 @@ static const WINSYS* const WSS[] = {
         NULL
 };
 
-const WINSYS* winsysd()
-{
-        static const WINSYS* dws = NULL;
-        if (!dws) dws = WSS[0];
-        return dws;
-}
-
-const WINSYS* winsysn(const char *name)
+const WINSYS *winsysn(const char *name)
 {
         return NULL;
 }
 
-int wininit()
+const WINSYS *winsysd()
 {
-        return wininits(winsysd());
+        static const WINSYS *d = NULL;
+        if (!d) d = W[0];
+        return d;
 }
 
-int wininits(const WINSYS *sys)
+bool wininit()
+{
+        return wininit0();
+}
+
+bool wininit0()
+{
+        return wininit1(winsysd());
+}
+
+bool wininit1(const WINSYS *sys)
 {
         assert(sys != NULL);
         return sys->drv.init(sys);
@@ -63,10 +67,15 @@ int wininits(const WINSYS *sys)
 
 void winterm()
 {
-        winterms(winsysd());
+        winterm0();
 }
 
-void winterms(const WINSYS *sys)
+void winterm0()
+{
+        winterm1(winsysd());
+}
+
+void winterm1(const WINSYS *sys)
 {
         assert(sys != NULL);
         sys->drv.term(sys);
@@ -74,10 +83,15 @@ void winterms(const WINSYS *sys)
 
 void winpoll()
 {
-        winpolls(winsysd());
+        winpoll0();
 }
 
-void winpolls(const WINSYS *sys)
+void winpoll0()
+{
+        winpoll1(winsysd());
+}
+
+void winpoll1(const WINSYS *sys)
 {
         assert(sys != NULL);
         sys->drv.poll(sys);

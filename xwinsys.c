@@ -23,8 +23,6 @@
 
 #ifdef PLATFORM_LINUX
 
-#include "xwinsys.h"
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +31,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/XShm.h>
 
+#include "xwinsys.h"
 #include "window.h"
 #include "hashtabx.h"
 
@@ -226,7 +225,7 @@ void xpoll()
         }
 }
 
-int xwinalloc(WINDOW *win)
+bool xwinalloc(WINDOW *win)
 {
         XWINDAT *wd;
         XASSERT();
@@ -272,7 +271,7 @@ void xwinswap(WINDOW *win)
         }         
 }
 
-int xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
+bool xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
 {
         XSURFDAT *sd;
         XASSERT();
@@ -299,13 +298,13 @@ void xsurffree(SURFACE *surf)
         }
 }
 
-int xshmav()
+bool xshmav()
 {
         XASSERT();
         return XShmQueryExtension(d.xdpy) == 1;
 }
 
-int xshmvers(int *maj, int *min, int *pxmav)
+bool xshmvers(int *maj, int *min, int *pxmav)
 {
         int tmaj, tmin, tpxmav;
         XASSERT();
@@ -313,19 +312,19 @@ int xshmvers(int *maj, int *min, int *pxmav)
                 if (maj)   *maj   = tmaj;
                 if (min)   *min   = tmin;
                 if (pxmav) *pxmav = tpxmav;
-                return 1;
+                return true;
         }
-        else return 0;
+        else return false;
 }
 
-int xshmpxmav()
+bool xshmpxmav()
 {
         int tpxmav;
         XASSERT();
         if (xshmvers(NULL, NULL, &tpxmav)) {
                 return tpxmav == 1;
         }
-        else return 0;
+        else return false;
 }
 
 unsigned long xblackpx()
