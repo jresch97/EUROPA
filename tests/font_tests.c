@@ -38,22 +38,19 @@
 
 static float C[256];
 
-int txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
+int txtmeas(FONT *font, const char *s, int *w, int *h)
 {
         GLYPH *g;
-        int    i, l, m, tw, th, gw, gh, gxadv, txadv;
-        tw = th = txadv = 0;
-        for (i = 0, l = strlen(s), m = l - 1; i < l; i++) {
+        int    i, l, tw, th, gh;
+        for (i = tw = th = 0, l = strlen(s); i < l; i++) {
                 g = fntglyph(font, s[i]);
                 if (!g) return 0;
-                gw = g->w, gh = g->h, gxadv = g->xadv;
-                tw += gw + (i < m) ? gxadv : 0;
+                gh = g->h;
+                tw += g->w + (i < (l - 1)) ? g->xadv : 0;
                 if (gh > th) th = gh;
-                txadv = gxadv - gw;
         }
-        if (w)    *w = tw;
-        if (h)    *h = th;
-        if (xadv) *xadv = txadv;
+        if (w) *w = tw;
+        if (h) *h = th;
         return 1;
 }
 
@@ -113,7 +110,7 @@ int main(int argc, char *argv[])
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
         font = fntload(PATH, 72);
-        txtmeas(font, MSG, &tw, &th, NULL);
+        txtmeas(font, MSG, &tw, &th);
         for (j = 0; j < 256; j++) C[j] = j / 255.0;
         i    = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + th;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
