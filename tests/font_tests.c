@@ -72,7 +72,7 @@ void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                                 tx = x + gx + xadv;
                                 ty = y + gy + (h - g->h);
                                 cc = gpx[gx + gy * g->surf->w];
-                                if (tx >= 0      && ty >= 0 &&
+                                if (cc == 255 && tx >= 0 && ty >= 0 &&
                                     tx < surf->w && ty < surf->h) {
                                         px[tx + ty * surf->w] = COL(c, cc);
                                 }
@@ -84,12 +84,13 @@ void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
 
 int main(int argc, char *argv[])
 {
-        WINDOW  *win;
-        SURFACE *surf;
-        FONT    *font;
-        int      j, k, l, m, w, h, xadv;
-        unsigned i, fc, fps, tfps;
-        uint64_t t0, t1, dt, f, a;
+        WINDOW   *win;
+        SURFACE  *surf;
+        FONT     *font;
+        int       c, x, y, j, k, l, m, w, h, xadv;
+        unsigned  i, fc, fps, tfps;
+        uint32_t *px;
+        uint64_t  t0, t1, dt, f, a;
         wininit();
         fntinit();
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
@@ -107,7 +108,14 @@ int main(int argc, char *argv[])
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                surfclr32(surf, 0);
+                px = (uint32_t*)winpx(win);
+                for (y = 0; y < surf->h; y++) {
+                        for (x = 0; x < surf->w; x++) {
+                                c = ((x ^ y) + i) & 0xff;
+                                c = c + (c << 8) + (c << 16);
+                                px[x + y * surf->w] = c;
+                        }
+                }
                 for (l = 16, m = 0; l < win->w; l += w, m++) {
                         for (j = 16, k = 0; j < win->h; j += 16 + h, k++) {
                                 txtdraw(surf, font, MSG, l, j, rand());
