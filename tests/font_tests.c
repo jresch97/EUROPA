@@ -84,9 +84,9 @@ int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                 gs = g->surf;
                 if (!gs) goto adv;
                 gpx = (uint8_t*)gs->px;
-                gw  = g->w, gh = g->h, go = th - gh;
+                gw  = g->w, gh = g->h, go = y + th - gh;
                 for (gy = 0; gy < gh; gy++) {
-                        ty = y + gy + go;
+                        ty = gy + go;
                         if (ty < 0 || ty >= sh) continue;
                         for (gx = 0; gx < gw; gx++) {
                                 tx = gx + xadv;
