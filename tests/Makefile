@@ -1,11 +1,11 @@
 CC = gcc
-CFLAGS = -std=c99 -pedantic -Wall -O3 -D_GNU_SOURCE -I../
+CFLAGS = -std=c99 -pedantic -Wall -O3 -I../
 LDFLAGS = -L../ -l:libeuropa.a -lm -lX11 -lXext -lrt -lfreetype
 
 all: clean europa os_tests.out window_tests.out surface_tests.out clock_tests.out font_tests.out
 
 europa:
-	cd ../ && make && cd -
+	cd ../ && make clean && make && cd -
 
 os_tests.out: os_tests.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)

@@ -1,7 +1,7 @@
 CC = gcc
 AR = ar
-INC = -I../ -I/usr/include/freetype2 -I/usr/include/libpng16
-CFLAGS = -std=c99 -pedantic -Wall -fPIC -D_GNU_SOURCE -O3 $(INC)
+INC = -I/usr/include/freetype2 -I/usr/include/libpng16
+CFLAGS = -std=c99 -pedantic -Wall -D_GNU_SOURCE -O3 $(INC)
 ARFLAGS = rcs
 LDFLAGS = -lX11 -lXext -lrt -lfreetype
 SRC = os.c winsys.c window.c surface.c xwinsys.c clock.c font.c freetype.c
