@@ -33,7 +33,7 @@
 #define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
 #define MSG  "Hello, World! "
 
-#define MAP(c, a, s) ((((int)((c >> s) * (a / 255.0))) & 0xff) << s)
+#define MAP(c, a, s) (((int)(((c >> s) & 0xff) * (a / 255.0))) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
 
 int txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
@@ -90,7 +90,7 @@ int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                                 tx = gx + xadv;
                                 if (tx < 0 || tx >= sw) continue;
                                 a = gpx[gx + gy * gw];
-                                if (a == 255) px[tx + ty * sw] = COL(c, a);
+                                if (a > 0) px[tx + ty * sw] = COL(c, a);
                         }
                 }
         adv:    xadv += g->xadv;
@@ -103,9 +103,8 @@ int main(int argc, char *argv[])
         WINDOW   *win;
         SURFACE  *surf;
         FONT     *font;
-        int       c, x, y, z, j, k, l, w, h, sw, sh;
+        int       z, j, k, l, w, h, sw, sh;
         unsigned  i, fc, fps, tfps;
-        uint32_t *px;
         uint64_t  t0, t1, dt, f, g, a;
         wininit();
         fntinit();
@@ -124,14 +123,8 @@ int main(int argc, char *argv[])
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                px = (uint32_t*)surf->px;
                 sw = surf->w, sh = surf->h;
-                for (y = 0; y < sh; y++, z = y * sw) {
-                        for (x = 0; x < sw; x++) {
-                                c = ((x ^ y) + i) & 0xff;
-                                px[x + z] = c + (c << 8) + (c << 16);
-                        }
-                }
+                memset(surf->px, 0, surf->bytes);
                 for (j = 16; j < sw; j += w) {
                         for (k = 16; k < sh; k += l) {
                                 txtdraw(surf, font, MSG, j, k, rand());
@@ -144,7 +137,7 @@ int main(int argc, char *argv[])
                         fps = UINT_MAX;
                 }
                 if (tfps > 0) {
-                        g = f / tfps;
+                        g  = f / tfps;
                         t1 = clkelap();
                         dt = t1 - t0;
                         if (dt < g) clkslep(g - dt);
