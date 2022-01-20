@@ -40,7 +40,7 @@ typedef struct NAME { \
         NODE **dat;      \
 } NAME; \
 \
-HASHTABX_EXPORT NAME* FUN ## alloc(SIZE_T cap) \
+HASHTABX_EXPORT NAME *FUN ## alloc(SIZE_T cap) \
 { \
         NAME  *ht;                         \
         SIZE_T i;                          \

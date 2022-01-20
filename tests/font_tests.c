@@ -31,25 +31,52 @@
 #include <font.h>
 
 #define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
+#define MSG  "Hello World"
+
+#define MAP(c, a, s) ((((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s))
+#define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
+
+void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
+{
+        GLYPH    *g;
+        uint32_t *px;
+        uint8_t  *gpx;
+        int       cc, xx, yy, gx, gy, i, l, xadv;
+        px   = (uint32_t*)surf->px;
+        xadv = 0;
+        for (i = 0, l = strlen(s); i < l; i++) {
+                g = fntglyph(font, s[i]);
+                if (!g) continue;
+                if (!g->surf) goto adv;
+                gpx = (uint8_t*)g->surf->px;
+                for (gy = 0; gy < g->surf->h; gy++) {
+                        for (gx = 0; gx < g->surf->w; gx++) {
+                                xx = x + gx + xadv;
+                                yy = y + gy + (font->pt - g->surf->h);
+                                cc = gpx[gx + gy * g->surf->w];
+                                px[xx + yy * surf->w] = COL(c, cc);
+                        }
+                }
+        adv:    xadv += g->xadv;
+        }       
+}
 
 int main(int argc, char *argv[])
 {
         WINDOW  *win;
         SURFACE *surf;
         FONT    *font;
-        int      x, y;
         unsigned i, fc, fps, tfps;
-        uint32_t c, *px;
         uint64_t t0, t1, dt, f, a;
         wininit();
-        fontinit();
+        fntinit();
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf (win);
-        font = fontload(PATH, 12);
+        font = fntload(PATH, 72);
         i    = fc = 0, a = 0, fps = UINT_MAX;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
-        printf("fontsysd()->name=\"%s\"\n", fontsysd()->name);
+        printf("fntsysd()->name=\"%s\"\n", fntsysd()->name);
         printf("font->path=\"%s\"\n", font->path);
         printf("font->family=\"%s\"\n", font->family);
         printf("font->style=\"%s\"\n", font->style);
@@ -57,13 +84,8 @@ int main(int argc, char *argv[])
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                px = (uint32_t*)winpx(win);
-                for (y = 0; y < surf->h; y++) {
-                        for (x = 0; x < surf->w; x++) {
-                                c = ((x + i) ^ (y + i)) & 0xff;
-                                px[x + y * surf->w] = c;
-                        }
-                }
+                surfclr32(surf, 0);
+                txtdraw(surf, font, MSG, 16, 16, rand());
                 winswap(win);
                 winpoll();
                 if (fps < UINT_MAX) {
@@ -86,9 +108,9 @@ int main(int argc, char *argv[])
                 }
                 fc++, i++;
         }
-        fontfree(font);
+        fntfree(font);
         winfree(win);
-        fontterm();
+        fntterm();
         winterm();
         return EXIT_SUCCESS;
 }

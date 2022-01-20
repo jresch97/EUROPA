@@ -19,83 +19,151 @@
  *
  */
 
-#include "font.h"
-
 #include <assert.h>
 #include <stdlib.h>
 
-#include "ftfontsys.h"
+#include "font.h"
+#include "freetype.h"
 
 static const FONTSYS* const FSS[] = {
-        &FTFONTSYS,
+        &FREETYPE,
         NULL
 };
 
-const FONTSYS *fontsysd()
+const FONTSYS *fntsysd()
 {
         static const FONTSYS *dfs = NULL;
         if (!dfs) dfs = FSS[0];
         return dfs;
 }
 
-const FONTSYS *fontsysn(const char *name)
+const FONTSYS *fntsysn(const char *name)
 {
         return NULL;
 }
 
-int fontinit()
+int fntinit()
 {
-        return fontinits(fontsysd());
+        const FONTSYS *sys;
+        sys = fntsysd();
+        assert(sys != NULL);
+        assert(sys->drv.fntinit != NULL);
+        return sys->drv.fntinit();
 }
 
-int fontinits(const FONTSYS *sys)
+int fntinit0()
+{
+        const FONTSYS *sys;
+        sys = fntsysd();
+        assert(sys != NULL);
+        assert(sys->drv.fntinit != NULL);
+        return sys->drv.fntinit();
+}
+
+int fntinit1(const FONTSYS *sys)
 {
         assert(sys != NULL);
-        return sys->drv.init(sys);
+        assert(sys->drv.fntinit != NULL);
+        return sys->drv.fntinit();
 }
 
-void fontterm()
+void fntterm()
 {
-        fontterms(fontsysd());
+        const FONTSYS *sys;
+        sys = fntsysd();
+        assert(sys != NULL);
+        assert(sys->drv.fntterm != NULL);
+        sys->drv.fntterm();
 }
 
-void fontterms(const FONTSYS *sys)
+void fntterm0()
+{
+        const FONTSYS *sys;
+        sys = fntsysd();
+        assert(sys != NULL);
+        assert(sys->drv.fntterm != NULL);
+        sys->drv.fntterm();
+}
+
+void fntterm1(const FONTSYS *sys)
 {
         assert(sys != NULL);
-        sys->drv.term(sys);
+        assert(sys->drv.fntterm != NULL);
+        sys->drv.fntterm();
 }
 
-FONT *fontalloc(const char *family, const char *style, int pt)
+FONT *fntalloc(const char *family, const char *style, int pt)
 {
         /* TODO: Lookup font on system. */
         /* return fontload(); */
         return NULL;
 }
 
-FONT *fontload(const char *path, int pt)
+FONT *fntload(const char *path, int pt)
 {
         FONT *font;
         assert(path != NULL);
         assert(pt > 0);
         font = malloc(sizeof(*font));
-        if (!font) goto errret;
-        font->sys  = fontsysd();
-        if (!font->sys) goto errff;
+        if (!font) {
+                goto err;
+        }
+        font->sys = fntsysd();
+        if (!font->sys) {
+                goto errf;
+        }
         font->family = font->style = NULL;
         font->path   = path;
         font->pt     = pt;
-        if (!font->sys->drv.fontalloc(font)) goto errff;
+        font->glyphs = glyphtalloc(257);
+        if (!font->glyphs) {
+                goto errf;
+        }
+        assert(font->sys->drv.fntalloc != NULL);
+        if (!font->sys->drv.fntalloc(font)) {
+                goto errf;
+        }
         return font;
-errff:  free(font);
-errret: return NULL;
+errf:   free(font);
+err:    return NULL;
 }
 
-void fontfree(FONT *font)
+void fntfree(FONT *font)
 {
         if (font) {
-                if (font->sys && font->sys->drv.fontfree) {
-                        font->sys->drv.fontfree(font);
+                if (font->sys) {
+                        assert(font->sys->drv.fntfree != NULL);
+                        font->sys->drv.fntfree(font);
+                }
+                if (font->glyphs) {
+                        glyphtfree(font->glyphs);
                 }
                 free(font);
         }
+}
+
+GLYPH *fntglyph(FONT *font, int code)
+{
+        GLYPH *g;
+        assert(font != NULL);
+        if (!glyphtget(font->glyphs, code, &g)) {
+                g = glyalloc(font, code);
+                if (!g) {
+                        goto err;
+                }
+                if (!glyphtins(font->glyphs, code, g)) {
+                        goto errf;
+                }
+        }
+        return g;
+errf:   free(g);
+err:    return NULL;
+}
+
+GLYPH *glyalloc(FONT *font, int code)
+{
+        assert(font != NULL);
+        assert(font->sys != NULL);
+        assert(font->sys->drv.glyalloc != NULL);
+        return font->sys->drv.glyalloc(font, code);
 }

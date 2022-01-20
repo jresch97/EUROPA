@@ -22,15 +22,29 @@
 #ifndef EUROPA_FONT_H
 #define EUROPA_FONT_H
 
+#include "surface.h"
+#include "hashtabx.h"
+
+#define GLYPHSH(code) (code)
+
+typedef struct GLYPH {
+        int      code;
+        int      xadv, yadv, left, top;
+        SURFACE *surf;
+} GLYPH;
+
+HASHTABX(GLYPHT, GLYPHNODE, glypht, GLYPH*, int, int, int, GLYPHSH, 2)
+
 typedef struct FONT FONT;
 
 typedef struct FONTSYS {
         const char *name;
         const struct {
-                int  (*init)      ();
-                void (*term)      ();
-                int  (*fontalloc) (FONT *font);
-                void (*fontfree)  (FONT *font);
+                int    (*fntinit)  ();
+                void   (*fntterm)  ();
+                int    (*fntalloc) (FONT *font);
+                void   (*fntfree)  (FONT *font);
+                GLYPH *(*glyalloc) (FONT *font, int code);
         } drv;
 } FONTSYS;
 
@@ -38,17 +52,22 @@ struct FONT {
         const FONTSYS *sys;
         const char    *path, *family, *style;
         int            pt;
+        GLYPHT        *glyphs;
         void          *dat;
 };
 
-const FONTSYS *fontsysd  ();
-const FONTSYS *fontsysn  (const char *name);
-int            fontinit  ();
-int            fontinits (const FONTSYS *sys);
-void           fontterm  ();
-void           fontterms (const FONTSYS *sys);
-FONT          *fontalloc (const char *family, const char *style, int pt);
-FONT          *fontload  (const char *path, int pt);
-void           fontfree  (FONT *font);
+const FONTSYS *fntsysd  ();
+const FONTSYS *fntsysn  (const char *name);
+int            fntinit  ();
+int            fntinit0 ();
+int            fntinit1 (const FONTSYS *sys);
+void           fntterm  ();
+void           fntterm0 ();
+void           fntterm1 (const FONTSYS *sys);
+FONT          *fntalloc (const char *family, const char *style, int pt);
+FONT          *fntload  (const char *path, int pt);
+void           fntfree  (FONT *font);
+GLYPH         *fntglyph (FONT *font, int code);
+GLYPH         *glyalloc (FONT *font, int code);
 
 #endif

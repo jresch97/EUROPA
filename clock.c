@@ -39,11 +39,6 @@ uint64_t clkfreq()
 {
 #ifdef PLATFORM_LINUX
         return NSPERS;
-/*
-        TIMESPEC t;
-        clock_getres(CLOCK_MONOTONIC, &t);
-        return t.tv_sec * NSPERS + t.tv_nsec;
-*/
 #endif
 #ifdef PLATFORM_WIN32
         LARGE_INTEGER f;
