@@ -133,27 +133,24 @@ int ximgalloc(SURFACE *surf)
                                            xvi.visual, xvi.depth, ZPixmap,
                                            sd->xshm.shmaddr, &sd->xshm,
                                            surf->w, surf->h);
-                XFlush(d.xdpy);
                 if (!sd->ximg) goto errdsh;
                 surf->px = sd->xshm.shmaddr;
         }
         else {
-        	sd->useshm = 0;
-        	surf->px = malloc(surf->w * surf->h * d.xd);
-        	if (!surf->px) goto err;
-        	sd->ximg = XCreateImage(d.xdpy,
-        	                        xvi.visual, xvi.depth, ZPixmap, 0,
-        	                        surf->px, surf->w, surf->h, 32,
-        	                        0);
-                XFlush(d.xdpy);
-        	if (!sd->ximg) {
-        		free(surf->px);
-        		goto err;
-        	}
+                sd->useshm = 0;
+                surf->px   = malloc(surf->w * surf->h * d.xd);
+                if (!surf->px) goto err;
+                sd->ximg = XCreateImage(d.xdpy,
+                                        xvi.visual, xvi.depth, ZPixmap, 0,
+                                        surf->px, surf->w, surf->h, 32,
+                                        0);
+                if (!sd->ximg) {
+                        free(surf->px);
+                        goto err;
+                }
         }
         return 1;
 errdsh: XShmDetach(d.xdpy, &sd->xshm);
-	XFlush(d.xdpy);
 errfsh: shmdt (sd->xshm.shmaddr);
         shmctl(sd->xshm.shmid, IPC_RMID, 0);
 err:    return 0;
@@ -168,13 +165,11 @@ void ximgfree(SURFACE *surf)
                 sd = XSD(surf);
                 if (sd->useshm) {
                         XShmDetach(d.xdpy, &sd->xshm);
-                        XFlush(d.xdpy);
                         shmdt (sd->xshm.shmaddr);
                         shmctl(sd->xshm.shmid, IPC_RMID, 0);
                 }
                 if (sd->ximg) {
                 	XDestroyImage(sd->ximg);
-                	XFlush(d.xdpy);
         	}
         }
 }
@@ -205,7 +200,6 @@ void xterm()
                         xwinhtfree(d.xwht);
                         d.xwht = NULL;
                 }
-		XFlush(d.xdpy);
                 XCloseDisplay(d.xdpy);
                 d.xdpy = NULL;
         }
@@ -275,10 +269,7 @@ void xwinfree(WINDOW *win)
         assert(win != NULL);
         if (win) {
                 wd = XWD(win);
-                if (wd->xwin) {
-                	XDestroyWindow(d.xdpy, wd->xwin);
-        		XFlush(d.xdpy);
-        	}
+                if (wd->xwin) XDestroyWindow(d.xdpy, wd->xwin);
                 free(wd);
         }
 }
@@ -301,7 +292,6 @@ void xwinswap(WINDOW *win)
         else {
                 XPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg,
                           0, 0, 0, 0, surf->w, surf->h);
-        	XFlush(d.xdpy);
         }
 }
 

@@ -30,7 +30,7 @@
 #include <window.h>
 #include <font.h>
 
-#define PATH "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf"
+#define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
 #define MSG  "Hello, World! "
 
 #define MAP(c, a, s) ((int)(((c >> s) & 0xff) * C[a]) << s)
