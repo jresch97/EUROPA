@@ -31,24 +31,26 @@
 #include <font.h>
 
 #define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
-#define MSG  "Hello World"
+#define MSG  "Hello, World! "
 
 #define MAP(c, a, s) (((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
 
-void txtmeas(FONT *font, const char *s, int *w, int *h)
+void txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
 {
         GLYPH *g;
-        int    i, l, tw, th;
-        tw = th = 0;
+        int    i, l, tw, th, txadv;
+        tw = th = txadv = 0;
         for (i = 0, l = strlen(s); i < l; i++) {
                 g = fntglyph(font, s[i]);
                 if (!g) continue;
                 if (g->h > th) th = g->h;
-                tw += g->w + g->xadv;
+                tw += g->w + (i < (l - 1)) ? g->xadv : 0;
+                if (i == (l - 1)) txadv = g->xadv - g->w;
         }
-        if (w) *w = tw;
-        if (h) *h = th;
+        if (w)    *w = tw;
+        if (h)    *h = th;
+        if (xadv) *xadv = txadv;
 }
 
 void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
@@ -59,7 +61,7 @@ void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
         int       cc, tx, ty, gx, gy, i, l, xadv, h;
         px   = (uint32_t*)surf->px;
         xadv = h = 0;
-        txtmeas(font, s, NULL, &h);
+        txtmeas(font, s, NULL, &h, NULL);
         for (i = 0, l = strlen(s); i < l; i++) {
                 g = fntglyph(font, s[i]);
                 if (!g) continue;
@@ -68,9 +70,11 @@ void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                 for (gy = 0; gy < g->surf->h; gy++) {
                         for (gx = 0; gx < g->surf->w; gx++) {
                                 tx = x + gx + xadv;
-                                ty = y + gy + (h - g->surf->h);
+                                ty = y + gy + (h - g->h);
                                 cc = gpx[gx + gy * g->surf->w];
-                                px[tx + ty * surf->w] = COL(c, cc);
+                                if (tx >= 0 && ty >= 0 && tx < surf->w && ty < surf->h) {
+                                        px[tx + ty * surf->w] = COL(c, cc);
+                                }
                         }
                 }
         adv:    xadv += g->xadv;
@@ -82,6 +86,7 @@ int main(int argc, char *argv[])
         WINDOW  *win;
         SURFACE *surf;
         FONT    *font;
+        int      j, k, l, m, w, h, xadv;
         unsigned i, fc, fps, tfps;
         uint64_t t0, t1, dt, f, a;
         wininit();
@@ -97,11 +102,16 @@ int main(int argc, char *argv[])
         printf("font->family=\"%s\"\n", font->family);
         printf("font->style=\"%s\"\n", font->style);
         printf("font->pt=%d\n", font->pt);
+        txtmeas(font, MSG, &w, &h, &xadv);
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
                 surfclr32(surf, 0);
-                txtdraw(surf, font, MSG, 16, 16, rand());
+                for (l = 16, m = 0; l < win->w; l += w, m++) {
+                        for (j = 16, k = 0; j < win->h; j += 16 + h, k++) {
+                                txtdraw(surf, font, MSG, l, j, rand());
+                        }
+                }
                 winswap(win);
                 winpoll();
                 if (fps < UINT_MAX) {

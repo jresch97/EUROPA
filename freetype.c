@@ -116,8 +116,8 @@ GLYPH *ftglyalloc(FONT *font, int code)
         }
         gs = fd->face->glyph;
         g->code = code;
-        g->w    = gs->bitmap.width;
-        g->h    = gs->bitmap.rows;
+        g->w    = gs->bitmap.width > 0 ? gs->bitmap.width : gs->advance.x;
+        g->h    = gs->bitmap.rows  > 0 ? gs->bitmap.rows  : gs->advance.y;
         g->left = gs->bitmap_left >> 6;
         g->top  = gs->bitmap_top  >> 6;
         g->xadv = gs->advance.x   >> 6;
