@@ -133,32 +133,32 @@ HASHTABX_EXPORT BOOL_T FUN ## get(NAME *ht, KEY_T k, T *v) \
 \
 HASHTABX_EXPORT BOOL_T FUN ## ins(NAME *ht, KEY_T k, T v) \
 { \
-        SIZE_T i;                       \
-        NODE  *n, *p;                   \
-        assert(ht != NULL);             \
-        i = HASH(k) % ht->cap;          \
-        n = ht->dat[i];                 \
-        if (!n) {                       \
-                n = malloc(sizeof(*n)); \
-                if (!n) goto err;       \
-                n->k = k, n->v = v;     \
-                ht->dat[i] = n;         \
-                ht->len++;              \
-                goto suc;               \
-        }                               \
-        while (n) {                     \
-                if (n->k == k) {        \
-                        n->v = v;       \
-                        goto suc;       \
-                }                       \
-                p = n, n = n->n;        \
-        }                               \
-        n = malloc(sizeof(*n));         \
-        if (!n) goto err;               \
-        n->k = k, n->v = v, p->n = n;   \
-        ht->len++;                      \
-suc:    return (BOOL_T)1;               \
-err:    return (BOOL_T)0;               \
+        SIZE_T i;                                  \
+        NODE  *n, *p;                              \
+        assert(ht != NULL);                        \
+        i = HASH(k) % ht->cap;                     \
+        n = ht->dat[i];                            \
+        if (!n) {                                  \
+                n = malloc(sizeof(*n));            \
+                if (!n) goto err;                  \
+                n->k = k, n->v = v, n->n = NULL;   \
+                ht->dat[i] = n;                    \
+                ht->len++;                         \
+                goto suc;                          \
+        }                                          \
+        while (n) {                                \
+                if (n->k == k) {                   \
+                        n->v = v;                  \
+                        goto suc;                  \
+                }                                  \
+                p = n, n = n->n;                   \
+        }                                          \
+        n = malloc(sizeof(*n));                    \
+        if (!n) goto err;                          \
+        n->k = k, n->v = v, n->n = NULL, p->n = n; \
+        ht->len++;                                 \
+suc:    return (BOOL_T)1;                          \
+err:    return (BOOL_T)0;                          \
 }
 
 #endif
