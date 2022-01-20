@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         uint32_t c, *px;
         uint64_t t0, t1, dt, f, a;
         wininit();
-        win  = winalloc("EUROPA", WINCTR, WINCTR, 640, 480, 32);
+        win  = winalloc("EUROPA WINDOW TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
         i = fc = 0, a = 0, fps = UINT_MAX;
         tfps = argc > 1 ? atoi(argv[1]) : 60;

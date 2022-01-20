@@ -29,16 +29,20 @@
 
 typedef struct GLYPH {
         int      code;
-        int      xadv, yadv, left, top;
+        int      w, h;
+        int      xadv, yadv;
+        int      left, top;
         SURFACE *surf;
 } GLYPH;
 
-HASHTABX(GLYPHT, GLYPHNODE, glypht, GLYPH*, int, int, int, GLYPHSH, 2)
+HASHTABX(GLYPHT, GLYPHNODE, glypht, GLYPH*, int,         int, int, GLYPHSH, 2)
+/* HASHTABX(FONTHT, FONTNODE,  fontht, FONT*,  const char*, int, int, djb2,    2) */
 
 typedef struct FONT FONT;
 
 typedef struct FONTSYS {
         const char *name;
+        /* FONTHT     *db; */
         const struct {
                 int    (*fntinit)  ();
                 void   (*fntterm)  ();

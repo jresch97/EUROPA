@@ -36,14 +36,30 @@
 #define MAP(c, a, s) (((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
 
+void txtmeas(FONT *font, const char *s, int *w, int *h)
+{
+        GLYPH *g;
+        int    i, l, tw, th;
+        tw = th = 0;
+        for (i = 0, l = strlen(s); i < l; i++) {
+                g = fntglyph(font, s[i]);
+                if (!g) continue;
+                if (g->h > th) th = g->h;
+                tw += g->w + g->xadv;
+        }
+        if (w) *w = tw;
+        if (h) *h = th;
+}
+
 void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
 {
         GLYPH    *g;
         uint32_t *px;
         uint8_t  *gpx;
-        int       cc, xx, yy, gx, gy, i, l, xadv;
+        int       cc, tx, ty, gx, gy, i, l, xadv, h;
         px   = (uint32_t*)surf->px;
-        xadv = 0;
+        xadv = h = 0;
+        txtmeas(font, s, NULL, &h);
         for (i = 0, l = strlen(s); i < l; i++) {
                 g = fntglyph(font, s[i]);
                 if (!g) continue;
@@ -51,10 +67,10 @@ void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                 gpx = (uint8_t*)g->surf->px;
                 for (gy = 0; gy < g->surf->h; gy++) {
                         for (gx = 0; gx < g->surf->w; gx++) {
-                                xx = x + gx + xadv;
-                                yy = y + gy + (font->pt - g->surf->h);
+                                tx = x + gx + xadv;
+                                ty = y + gy + (h - g->surf->h);
                                 cc = gpx[gx + gy * g->surf->w];
-                                px[xx + yy * surf->w] = COL(c, cc);
+                                px[tx + ty * surf->w] = COL(c, cc);
                         }
                 }
         adv:    xadv += g->xadv;

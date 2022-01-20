@@ -116,10 +116,12 @@ GLYPH *ftglyalloc(FONT *font, int code)
         }
         gs = fd->face->glyph;
         g->code = code;
-        g->xadv = gs->metrics.horiAdvance >> 6;
-        g->yadv = gs->metrics.vertAdvance >> 6;
+        g->w    = gs->bitmap.width;
+        g->h    = gs->bitmap.rows;
         g->left = gs->bitmap_left >> 6;
-        g->top  = gs->bitmap_top >> 6;
+        g->top  = gs->bitmap_top  >> 6;
+        g->xadv = gs->advance.x   >> 6;
+        g->yadv = gs->advance.y   >> 6;
         if (gs->bitmap.width > 0 && gs->bitmap.rows > 0) {
                 g->surf = surfalloc(RGBA32, gs->bitmap.width, gs->bitmap.rows);
                 memcpy(g->surf->px, gs->bitmap.buffer,
