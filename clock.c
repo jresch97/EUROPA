@@ -20,38 +20,36 @@
  */
 
 #include "clock.h"
-
 #include "platform.h"
 
 #ifdef PLATFORM_LINUX
-
 #include <time.h>
 #include <unistd.h>
-
-typedef struct timespec TIMESPEC;
-
 #endif
 
 #ifdef PLATFORM_WIN32
-
 #include <Windows.h>
+#endif
 
+#ifdef PLATFORM_LINUX
+typedef struct timespec TIMESPEC;
 #endif
 
 uint64_t clkfreq()
 {
 #ifdef PLATFORM_LINUX
-        return NSPERS;
+        TIMESPEC t;
+        clock_getres(CLOCK_MONOTONIC_RAW, &t);
+        return t.tv_sec * NSPERS + t.tv_nsec;
 #endif
 #ifdef PLATFORM_WIN32
-        static LARGE_INTEGER f = { 0 };
-        if (f.QuadPart > 0)                return f.QuadPart;
+        LARGE_INTEGER f;
         if (QueryPerformanceFrequency(&f)) return f.QuadPart;
         return 0;
 #endif
 }
 
-uint64_t clkelapt()
+uint64_t clkelap()
 {
 #ifdef PLATFORM_LINUX
         TIMESPEC t;
@@ -69,37 +67,42 @@ uint64_t clkelaps()
 {
         uint64_t f;
         f = clkfreq();
-        return f > 0 ? clkelapt() / f : 0;
+        return f > 0 ? (uint64_t)(clkelap() / f) : 0;
 }
 
 uint64_t clkelapms()
 {
-        uint64_t d;
-        d = clkfreq() / MSPERS;
-        return d > 0 ? clkelapt() / d : 0;
+        uint64_t f;
+        f = clkfreq();
+        return f > 0 ? (uint64_t)(clkelap() / (f / (double)MSPERS)) : 0;
 }
 
 uint64_t clkelapus()
 {
-        uint64_t d;
-        d = clkfreq() / USPERS;
-        return d > 0 ? clkelapt() / d : 0;
+        uint64_t f;
+        f = clkfreq();
+        return f > 0 ? (uint64_t)(clkelap() / (f / (double)USPERS)) : 0;
 }
 
 uint64_t clkelapns()
 {
-        uint64_t d;
-        d = clkfreq() / NSPERS;
-        return d > 0 ? clkelapt() / d : 0;
+        uint64_t f;
+        f = clkfreq();
+        return f > 0 ? (uint64_t)(clkelap() / (f / (double)NSPERS)) : 0;
 }
 
-void clkslept(uint64_t t)
+void clkslep(uint64_t t)
 {
+        if (t == 0) return;
 #ifdef PLATFORM_LINUX
+        uint64_t f;
         TIMESPEC s;
-        s.tv_sec  = t / clkfreq();
-        s.tv_nsec = t - (s.tv_sec * NSPERS);
-        nanosleep(&s, NULL);
+        f = clkfreq();
+        if (f > 0) {
+                s.tv_sec = t / clkfreq();
+                s.tv_nsec = t - s.tv_sec * NSPERS;
+                nanosleep(&s, NULL);
+        }
 #endif
 #ifdef PLATFORM_WIN32
         uint64_t      a;
@@ -116,20 +119,20 @@ void clkslept(uint64_t t)
 
 void clksleps(uint64_t s)
 {
-        clkslept(s * clkfreq());
+        clkslep(s * clkfreq());
 }
 
 void clkslepms(uint64_t ms)
 {
-        clkslept(ms * (clkfreq() / MSPERS));
+        clkslep((uint64_t)(ms * (clkfreq() / (double)MSPERS)));
 }
 
 void clkslepus(uint64_t us)
 {
-        clkslept(us * (clkfreq() / USPERS));
+        clkslep((uint64_t)(us * (clkfreq() / (double)USPERS)));
 }
 
 void clkslepns(uint64_t ns)
 {
-        clkslept(ns * (clkfreq() / NSPERS));
+        clkslep((uint64_t)(ns * (clkfreq() / (double)NSPERS)));
 }

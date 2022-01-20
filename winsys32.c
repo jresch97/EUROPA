@@ -23,14 +23,11 @@
 
 #ifdef PLATFORM_WIN32
 
-#include "winsys32.h"
-
 #include <assert.h>
 #include <Windows.h>
 
-#include "pxfmt.h"
+#include "winsys32.h"
 #include "window.h"
-#include "surface.h"
 
 #define WC32       "EUROPA WINDOW CLASS"
 #define WCS32      (CS_HREDRAW | CS_VREDRAW | CS_OWNDC)
@@ -114,8 +111,8 @@ int diballoc32(SURFACE *surf)
         sd->bmi.bmiHeader.biPlanes      = 1;
         sd->bmi.bmiHeader.biBitCount    = surf->pxfmt.bipp;
         sd->bmi.bmiHeader.biCompression = BI_RGB;
-        surf->bysz = surf->w * surf->h * surf->pxfmt.bypp;
-        surf->px = VirtualAlloc(NULL, surf->bysz, MEM_COMMIT, PAGE_READWRITE);
+        surf->bytes = surf->w * surf->h * surf->pxfmt.bypp;
+        surf->px = VirtualAlloc(NULL, surf->bytes, MEM_COMMIT, PAGE_READWRITE);
         if (!surf->px) return 0;
         sd->hBitmap = CreateDIBitmap(GetDC(NULL), &sd->bmi.bmiHeader, CBM_INIT,
                                      surf->px, &sd->bmi, DIB_RGB_COLORS);
@@ -137,7 +134,7 @@ void dibfree32(SURFACE *surf)
         }
 }
 
-int wininit32()
+bool wininit32()
 {
         if (d.hInstance)   return 1;
         d.hInstance = GetModuleHandle(NULL);
@@ -164,7 +161,7 @@ void winpoll32()
         }
 }
 
-int winalloc32(WINDOW *win)
+bool winalloc32(WINDOW *win)
 {
         WINDAT32 *wd;
         RECT      r;
@@ -208,13 +205,13 @@ void winrecap32(WINDOW *win, const char *title)
         assert(win != NULL);
 }
 
-void winmov32(WINDOW* win, int x, int y)
+void winmove32(WINDOW* win, int x, int y)
 {
         ASSERT32();
         assert(win != NULL);
 }
 
-void winresz32(WINDOW* win, int w, int h)
+void winresize32(WINDOW* win, int w, int h)
 {
         ASSERT32();
         assert(win != NULL);
@@ -236,20 +233,20 @@ void winswap32(WINDOW *win)
                                DIB_RGB_COLORS, SRCCOPY);
 }
 
-int surfalloc32(SURFACE *surf, PXFMT *pxfmt)
+bool surfalloc32(SURFACE *surf, PXFMT *pxfmt)
 {
         SURFDAT32 *sd;
         ASSERT32();
         assert(surf != NULL);
         sd = malloc(sizeof(*sd));
-        if (!sd) return 0;
+        if (!sd) goto erret;
         surf->dat = sd;
-        surf->bysz = surf->pxsz * RGBA32.bypp;
+        surf->bytes = surf->bytes * RGBA32.bypp;
         surf->pxfmt = RGBA32;
         if (!diballoc32(surf)) goto errfsd;
-        return 1;
+        return true;
 errfsd: free(sd);
-        return 0;
+erret:  return false;
 }
 
 void surffree32(SURFACE *surf)

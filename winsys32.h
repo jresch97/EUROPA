@@ -22,23 +22,25 @@
 #ifndef EUROPA_WINSYS32_H
 #define EUROPA_WINSYS32_H
 
+#include <stddef.h>
+
 #include "platform.h"
 
 #ifdef PLATFORM_WIN32
 
 #include "winsys.h"
 
-int  wininit32  ();
-void winterm32  ();
-void winpoll32  ();
-int  winalloc32 (WINDOW *win);
-void winfree32  (WINDOW *win);
-void winrecap32 (WINDOW *win, const char* title);
-void winmov32   (WINDOW *win, int x, int y);
-void winresz32  (WINDOW *win, int w, int h);
-void winswap32  (WINDOW *win);
-int  surfalloc32(SURFACE *surf, PXFMT *pxfmt);
-void surffree32 (SURFACE *surf);
+bool wininit32   ();
+void winterm32   ();
+void winpoll32   ();
+bool winalloc32  (WINDOW *win);
+void winfree32   (WINDOW *win);
+void winrecap32  (WINDOW *win, const char* title);
+void winmove32   (WINDOW *win, int x, int y);
+void winresize32 (WINDOW *win, int w, int h);
+void winswap32   (WINDOW *win);
+bool surfalloc32 (SURFACE *surf, PXFMT *pxfmt);
+void surffree32  (SURFACE *surf);
 
 static const WINSYS WINSYS32 = {
         "win32",
@@ -48,10 +50,13 @@ static const WINSYS WINSYS32 = {
                 &winpoll32,
                 &winalloc32,
                 &winfree32,
-                &winmov32,
-                &winresz32,
+                NULL, /* winshow */
+                NULL, /* winhide */
                 &winrecap32,
+                &winmove32,
+                &winresize32,
                 &winswap32,
+                NULL, /* winpush */
                 &surfalloc32,
                 &surffree32
         }

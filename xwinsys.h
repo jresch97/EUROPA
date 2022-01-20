@@ -22,6 +22,8 @@
 #ifndef EUROPA_XWINSYS_H
 #define EUROPA_XWINSYS_H
 
+#include <stddef.h>
+
 #include "platform.h"
 
 #ifdef PLATFORM_LINUX
@@ -30,19 +32,19 @@
 
 #include "winsys.h"
 
-int           xinit     ();
-void          xterm     ();
-void          xpoll     ();
-int           xwinalloc (WINDOW *win);
-void          xwinfree  (WINDOW *win);
-void          xwinswap  (WINDOW *win);
-int           xsurfalloc(SURFACE *surf, PXFMT *pxfmt);
-void          xsurffree (SURFACE *surf);
-int           xshmav    ();
-int           xshmvers  (int *maj, int *min, int *pxmav);
-int           xshmpxmav ();
-unsigned long xblackpx  ();
-unsigned long xwhitepx  ();
+bool          xinit      ();
+void          xterm      ();
+void          xpoll      ();
+bool          xwinalloc  (WINDOW *win);
+void          xwinfree   (WINDOW *win);
+void          xwinswap   (WINDOW *win);
+bool          xsurfalloc (SURFACE *surf, PXFMT *pxfmt);
+void          xsurffree  (SURFACE *surf);
+bool          xshmav     ();
+bool          xshmvers   (int *maj, int *min, int *pxmav);
+bool          xshmpxmav  ();
+unsigned long xblackpx   ();
+unsigned long xwhitepx   ();
 
 static const WINSYS XWINSYS = {
         "x11/xlib",
@@ -52,13 +54,14 @@ static const WINSYS XWINSYS = {
                 &xpoll,
                 &xwinalloc,
                 &xwinfree,
-                0,
-                0,
-                0,
+                NULL, /* winshow */
+                NULL, /* winhide */
+                NULL, /* winrecap */
+                NULL, /* winmove */
+                NULL, /* winresize */
                 &xwinswap,
                 &xsurfalloc,
                 &xsurffree
-                /* ... */
         }
 };
 

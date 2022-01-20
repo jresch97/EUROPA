@@ -31,6 +31,6 @@
 
 #include "surface.h"
 
-SURFACE* imgload(const char* path);
+SURFACE *imgload(const char *path);
 
 #endif

@@ -19,40 +19,55 @@
  *
  */
 
-#include "window.h"
-#include "surface.h"
-
 #include <assert.h>
 #include <stdlib.h>
 
-WINDOW* winalloc (const char *cap, int x, int y, int w, int h, int d,
-                  const WINOPTS *opts)
+#include "window.h"
+#include "surface.h"
+
+WINDOW *winalloc(const char *cap, int x, int y, int w, int h, int d)
 {
-        WINDOW *win;
+        return winalloc0(cap, x, y, w, h, d);
+}
+
+WINDOW *winalloc0(const char* cap, int x, int y, int w, int h, int d)
+{
+        return winalloc1(winsysd(), cap, x, y, w, h, d);
+}
+
+WINDOW *winalloc1(const WINSYS *sys, const char *cap,
+                  int x, int y, int w, int h, int d)
+{
+        WINDOW* win;
         win = malloc(sizeof(*win));
-        if (!win) return NULL;
-        win->sys   = opts ? opts->sys ? opts->sys : winsysd() : winsysd();
-        if (!win->sys) goto errfw;
+        if (!win) goto erret;
+        win->sys  = sys;
         win->cap  = cap;
-        win->open = 1;
+        win->open = true;
         win->x    = x;
         win->y    = y;
         win->w    = w;
         win->h    = h;
         win->d    = d;
-        win->dat = NULL;
+        win->dat  = NULL;
+        if (!win->sys) goto errfw;
         if (!win->sys->drv.winalloc(win)) goto errfw;
-        win->surf = surfallocs(win->sys, NULL, w, h);
+        win->surf = surfalloc2(win->sys, NULL, w, h);
         if (!win->surf) goto errwf;
         return win;
 errwf:  win->sys->drv.winfree(win);
 errfw:  free(win);
+erret:  return NULL;
+}
+
+WINDOW *winalloc2(const WINOPT *opt)
+{
+        assert(opt != NULL);
         return NULL;
 }
 
 void winfree(WINDOW *win)
 {
-        assert(win != NULL);
         if (win) {
                 surffree(win->surf);
                 win->sys->drv.winfree(win);
@@ -60,13 +75,25 @@ void winfree(WINDOW *win)
         }
 }
 
-int winopen(WINDOW* win)
+bool winopen(WINDOW *win)
 {
         assert(win != NULL);
         return win->open;
 }
 
-const char* wincap(WINDOW *win)
+void winshow(WINDOW *win)
+{
+        assert(win != NULL);
+        win->sys->drv.winshow(win);
+}
+
+void winhide(WINDOW *win)
+{
+        assert(win != NULL);
+        win->sys->drv.winhide(win);
+}
+
+const char *wincap(WINDOW *win)
 {
         assert(win != NULL);
         return win->cap;
@@ -78,28 +105,34 @@ void winrecap(WINDOW *win, const char *cap)
         win->sys->drv.winrecap(win, cap);
 }
 
-void winxy(WINDOW *win, int* x, int* y)
+void winpos(WINDOW *win, int *x, int *y)
 {
         assert(win != NULL);
         *x = win->x; *y = win->y;
 }
 
-void winsz(WINDOW *win, int *w, int *h)
+void winmove(WINDOW *win, int x, int y)
+{
+        assert(win != NULL);
+        win->sys->drv.winmove(win, x, y);
+}
+
+void winsize(WINDOW *win, int *w, int *h)
 {
         assert(win != NULL);
         *w = win->w; *h = win->h;
 }
 
-void winmov(WINDOW *win, int x, int y)
+void winresize(WINDOW *win, int w, int h)
 {
         assert(win != NULL);
-        win->sys->drv.winmov(win, x, y);
+        win->sys->drv.winresize(win, w, h);
 }
 
-void winresz(WINDOW *win, int w, int h)
+unsigned windepth(WINDOW *win)
 {
         assert(win != NULL);
-        win->sys->drv.winresz(win, w, h);
+        return win->d;
 }
 
 SURFACE* winsurf(WINDOW *win)
@@ -123,4 +156,5 @@ void winswap(WINDOW *win)
 void winpush(WINDOW *win)
 {
         assert(win != NULL);
+        win->sys->drv.winpush(win);
 }
