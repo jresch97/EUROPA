@@ -36,50 +36,68 @@
 #define MAP(c, a, s) (((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
 
-void txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
+int txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
 {
         GLYPH *g;
-        int    i, l, tw, th, txadv;
+        int    i, l, m, tw, th, gw, gh, gxadv, txadv;
         tw = th = txadv = 0;
-        for (i = 0, l = strlen(s); i < l; i++) {
+        for (i = 0, l = strlen(s), m = l - 1; i < l; i++) {
                 g = fntglyph(font, s[i]);
-                if (!g) continue;
-                if (g->h > th) th = g->h;
-                tw += g->w + (i < (l - 1)) ? g->xadv : 0;
-                if (i == (l - 1)) txadv = g->xadv - g->w;
+                if (!g) return 0;
+                gw = g->w, gh = g->h, gxadv = g->xadv;
+                tw += gw + (i < m) ? gxadv : 0;
+                if (gh > th) th = gh;
+                txadv = gxadv - gw;
         }
         if (w)    *w = tw;
         if (h)    *h = th;
         if (xadv) *xadv = txadv;
+        return 1;
 }
 
-void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
+int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
 {
-        GLYPH    *g;
-        uint32_t *px;
-        uint8_t  *gpx;
-        int       cc, tx, ty, gx, gy, i, l, xadv, h;
+        GLYPH      *g;
+        SURFACE    *gs;
+        uint32_t   *px;
+        uint8_t    *gpx;
+        const char *ss;
+        int         ch, cc, sw, sh;
+        int         tx, ty, th, h, xadv;
+        int         gw, gh, gx, gy, go;
         px   = (uint32_t*)surf->px;
-        xadv = h = 0;
-        txtmeas(font, s, NULL, &h, NULL);
-        for (i = 0, l = strlen(s); i < l; i++) {
-                g = fntglyph(font, s[i]);
-                if (!g) continue;
-                if (!g->surf) goto adv;
-                gpx = (uint8_t*)g->surf->px;
-                for (gy = 0; gy < g->surf->h; gy++) {
-                        for (gx = 0; gx < g->surf->w; gx++) {
-                                tx = x + gx + xadv;
-                                ty = y + gy + (h - g->h);
-                                cc = gpx[gx + gy * g->surf->w];
-                                if (cc == 255 && tx >= 0 && ty >= 0 &&
-                                    tx < surf->w && ty < surf->h) {
-                                        px[tx + ty * surf->w] = COL(c, cc);
+        ss   = s;
+        h    = th = 0;
+        xadv = x;
+        while ((ch = *ss++)) {
+                g = fntglyph(font, ch);
+                if (!g) return 0;
+                h = g->h;
+                if (h > th) th = h;
+        }
+        ss = s, sw = surf->w, sh = surf->h;
+        while ((ch = *ss++)) {
+                g = fntglyph(font, ch);
+                if (!g) return 0;
+                gs = g->surf;
+                if (!gs) goto adv;
+                gpx = (uint8_t*)gs->px;
+                gw  = g->w, gh = g->h, go = th - gh;
+                for (gy = 0; gy < gh; gy++) {
+                        ty = y + gy + go;
+                        if (ty < 0 || ty >= sh) continue;
+                        for (gx = 0; gx < gw; gx++) {
+                                tx = gx + xadv;
+                                if (tx < 0 || tx >= sw) continue;
+                                cc = gpx[gx + gy * gw];
+                                if (cc == 255) {
+                                        px[tx + ty * sw] = COL(c, cc);
                                 }
                         }
                 }
         adv:    xadv += g->xadv;
-        }       
+        }
+        return 1;
 }
 
 int main(int argc, char *argv[])
@@ -87,16 +105,17 @@ int main(int argc, char *argv[])
         WINDOW   *win;
         SURFACE  *surf;
         FONT     *font;
-        int       c, x, y, j, k, l, m, w, h, xadv;
+        int       c, x, y, z, j, k, l, w, h, sw, sh;
         unsigned  i, fc, fps, tfps;
         uint32_t *px;
-        uint64_t  t0, t1, dt, f, a;
+        uint64_t  t0, t1, dt, f, g, a;
         wininit();
         fntinit();
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
-        surf = winsurf (win);
+        surf = winsurf(win);
         font = fntload(PATH, 72);
-        i    = fc = 0, a = 0, fps = UINT_MAX;
+        txtmeas(font, MSG, &w, &h, NULL);
+        i    = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + h;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         printf("fntsysd()->name=\"%s\"\n", fntsysd()->name);
@@ -104,21 +123,20 @@ int main(int argc, char *argv[])
         printf("font->family=\"%s\"\n", font->family);
         printf("font->style=\"%s\"\n", font->style);
         printf("font->pt=%d\n", font->pt);
-        txtmeas(font, MSG, &w, &h, &xadv);
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                px = (uint32_t*)winpx(win);
-                for (y = 0; y < surf->h; y++) {
-                        for (x = 0; x < surf->w; x++) {
+                px = (uint32_t*)surf->px;
+                sw = surf->w, sh = surf->h;
+                for (y = 0; y < sh; y++, z = y * sw) {
+                        for (x = 0; x < sw; x++) {
                                 c = ((x ^ y) + i) & 0xff;
-                                c = c + (c << 8) + (c << 16);
-                                px[x + y * surf->w] = c;
+                                px[x + z] = c + (c << 8) + (c << 16);
                         }
                 }
-                for (l = 16, m = 0; l < win->w; l += w, m++) {
-                        for (j = 16, k = 0; j < win->h; j += 16 + h, k++) {
-                                txtdraw(surf, font, MSG, l, j, rand());
+                for (j = 16; j < sw; j += w) {
+                        for (k = 16; k < sh; k += l) {
+                                txtdraw(surf, font, MSG, j, k, rand());
                         }
                 }
                 winswap(win);
@@ -128,12 +146,11 @@ int main(int argc, char *argv[])
                         fps = UINT_MAX;
                 }
                 if (tfps > 0) {
-                        f  = clkfreq() / tfps;
+                        g = f / tfps;
                         t1 = clkelap();
                         dt = t1 - t0;
-                        if (dt < f) clkslep(f - dt);
+                        if (dt < g) clkslep(g - dt);
                 }
-                f  = clkfreq();
                 t1 = clkelap();
                 dt = t1 - t0;
                 a += dt;
