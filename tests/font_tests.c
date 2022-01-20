@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
         WINDOW   *win;
         SURFACE  *surf;
         FONT     *font;
-        int       z, j, k, l, w, h, sw, sh;
+        int       z, j, k, l, tw, th;
         unsigned  i, fc, fps, tfps;
         uint64_t  t0, t1, dt, f, g, a;
         wininit();
@@ -113,9 +113,9 @@ int main(int argc, char *argv[])
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
         font = fntload(PATH, 72);
-        txtmeas(font, MSG, &w, &h, NULL);
+        txtmeas(font, MSG, &tw, &th, NULL);
         for (j = 0; j < 256; j++) C[j] = j / 255.0;
-        i    = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + h;
+        i    = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + th;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         printf("fntsysd()->name=\"%s\"\n", fntsysd()->name);
@@ -126,10 +126,9 @@ int main(int argc, char *argv[])
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                sw = surf->w, sh = surf->h;
                 memset(surf->px, 0, surf->bytes);
-                for (j = 16; j < sw; j += w) {
-                        for (k = 16; k < sh; k += l) {
+                for (j = 16; j < surf->w; j += tw) {
+                        for (k = 16; k < surf->h; k += l) {
                                 txtdraw(surf, font, MSG, j, k, rand());
                         }
                 }
