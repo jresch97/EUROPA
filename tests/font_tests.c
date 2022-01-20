@@ -72,7 +72,8 @@ void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                                 tx = x + gx + xadv;
                                 ty = y + gy + (h - g->h);
                                 cc = gpx[gx + gy * g->surf->w];
-                                if (tx >= 0 && ty >= 0 && tx < surf->w && ty < surf->h) {
+                                if (tx >= 0      && ty >= 0 &&
+                                    tx < surf->w && ty < surf->h) {
                                         px[tx + ty * surf->w] = COL(c, cc);
                                 }
                         }
