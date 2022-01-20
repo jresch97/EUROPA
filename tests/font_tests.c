@@ -109,10 +109,10 @@ int main(int argc, char *argv[])
         fntinit();
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
-        font = fntload(PATH, 72);
+        font = fntload(PATH, 24);
         txtmeas(font, MSG, &tw, &th);
         for (j = 0; j < 256; j++) C[j] = j / 255.0;
-        i = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + th;
+        i = z = fc = 0, a = 0, fps = UINT_MAX, l = th + 16;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         printf("fntsysd()->name=\"%s\"\n", fntsysd()->name);
@@ -124,8 +124,8 @@ int main(int argc, char *argv[])
                 f  = clkfreq();
                 t0 = clkelap();
                 memset(surf->px, 0, surf->bytes);
-                for (j = 16; j < surf->w; j += tw) {
-                        for (k = 16; k < surf->h; k += l) {
+                for (j = 0; j < surf->w; j += tw) {
+                        for (k = 0; k < surf->h; k += l) {
                                 txtdraw(surf, font, MSG, j, k, rand());
                         }
                 }
