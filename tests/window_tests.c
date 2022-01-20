@@ -33,24 +33,25 @@ int main(int argc, char *argv[])
 {
         WINDOW  *win;
         SURFACE *surf;
-        int      x, y;
+        int      x, y, z, sw, sh;
         unsigned i, fc, fps, tfps;
         uint32_t c, *px;
         uint64_t t0, t1, dt, f, a;
         wininit();
         win  = winalloc("EUROPA WINDOW TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
-        i = fc = 0, a = 0, fps = UINT_MAX;
+        i = z = fc = 0, a = 0, fps = UINT_MAX;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                px = (uint32_t*)winpx(win);
-                for (y = 0; y < surf->h; y++) {
-                        for (x = 0; x < surf->w; x++) {
+                px = (uint32_t*)surf->px;
+                sw = surf->w, sh = surf->h;
+                for (y = 0; y < sh; y++, z = y * sw) {
+                        for (x = 0; x < sw; x++) {
                                 c = (x * x + y * y + i) & 0xff;
-                                px[x + y * surf->w] = c;
+                                px[x + z] = c;
                         }
                 }
                 winswap(win);
