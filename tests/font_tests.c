@@ -108,13 +108,13 @@ int main(int argc, char *argv[])
         int       z, j, k, l, w, h, sw, sh;
         unsigned  i, fc, fps, tfps;
         uint64_t  t0, t1, dt, f, g, a;
-        for (j = 0; j < 256; j++) C[j] = j / 255.0f;
         wininit();
         fntinit();
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
         font = fntload(PATH, 72);
         txtmeas(font, MSG, &w, &h, NULL);
+        for (j = 0; j < 256; j++) C[j] = j / 255.0;
         i    = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + h;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
