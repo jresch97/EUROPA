@@ -33,7 +33,7 @@
 #define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
 #define MSG  "Hello, World! "
 
-#define MAP(c, a, s) (((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s)
+#define MAP(c, a, s) ((((int)((c >> s) * (a / 255.0))) & 0xff) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
 
 int txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
@@ -62,7 +62,7 @@ int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
         uint32_t   *px;
         uint8_t    *gpx;
         const char *ss;
-        int         ch, cc, sw, sh;
+        int         ch, a, sw, sh;
         int         tx, ty, th, h, xadv;
         int         gw, gh, gx, gy, go;
         px   = (uint32_t*)surf->px;
@@ -89,10 +89,8 @@ int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                         for (gx = 0; gx < gw; gx++) {
                                 tx = gx + xadv;
                                 if (tx < 0 || tx >= sw) continue;
-                                cc = gpx[gx + gy * gw];
-                                if (cc == 255) {
-                                        px[tx + ty * sw] = COL(c, cc);
-                                }
+                                a = gpx[gx + gy * gw];
+                                if (a == 255) px[tx + ty * sw] = COL(c, a);
                         }
                 }
         adv:    xadv += g->xadv;
