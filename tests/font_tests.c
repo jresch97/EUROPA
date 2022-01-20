@@ -74,14 +74,14 @@ int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                 h = g->h;
                 if (h > th) th = h;
         }
-        ss = s, sw = surf->w, sh = surf->h;
+        ss = s, sw = surf->w, sh = surf->h, y += th;
         while ((ch = *ss++)) {
                 g = fntglyph(font, ch);
                 if (!g) return 0;
                 gs = g->surf;
                 if (!gs) goto adv;
                 gpx = (uint8_t*)gs->px;
-                gw  = g->w, gh = g->h, go = y + th - gh;
+                gw  = g->w, gh = g->h, go = y - gh;
                 for (gy = 0; gy < gh; gy++) {
                         ty = gy + go;
                         if (ty < 0 || ty >= sh) continue;
