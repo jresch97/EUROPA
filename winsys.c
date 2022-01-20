@@ -49,17 +49,17 @@ const WINSYS *winsysd()
         return d;
 }
 
-bool wininit()
+int wininit()
 {
         return wininit0();
 }
 
-bool wininit0()
+int wininit0()
 {
         return wininit1(winsysd());
 }
 
-bool wininit1(const WINSYS *sys)
+int wininit1(const WINSYS *sys)
 {
         assert(sys != NULL);
         return sys->drv.init(sys);

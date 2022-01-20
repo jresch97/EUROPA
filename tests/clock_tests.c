@@ -28,21 +28,21 @@ static const uint64_t SLEPS = 1;
 
 int main(int argc, char *argv[])
 {
-        printf("clkfreq  =%llu\n", clkfreq());
-        printf("clkelap  =%llu\n", clkelap());
-        printf("clkelaps =%llu\n", clkelaps());
-        printf("clkelapms=%llu\n", clkelapms());
-        printf("clkelapus=%llu\n", clkelapus());
-        printf("clkelapns=%llu\n", clkelapns());
-        printf("clkslep  (%llu)...\n", SLEPS * clkfreq());
+        printf("clkfreq  =%lu\n", clkfreq());
+        printf("clkelap  =%lu\n", clkelap());
+        printf("clkelaps =%lu\n", clkelaps());
+        printf("clkelapms=%lu\n", clkelapms());
+        printf("clkelapus=%lu\n", clkelapus());
+        printf("clkelapns=%lu\n", clkelapns());
+        printf("clkslep  (%lu)...\n", SLEPS * clkfreq());
         clkslep(SLEPS * clkfreq());
-        printf("clksleps (%llu)...\n", SLEPS);
+        printf("clksleps (%lu)...\n", SLEPS);
         clksleps(SLEPS);
-        printf("clkslepms(%llu)...\n", SLEPS * MSPERS);
+        printf("clkslepms(%lu)...\n", SLEPS * MSPERS);
         clkslepms(SLEPS * MSPERS);
-        printf("clkslepus(%llu)...\n", SLEPS * USPERS);
+        printf("clkslepus(%lu)...\n", SLEPS * USPERS);
         clkslepus(SLEPS * USPERS);
-        printf("clkslepns(%llu)...\n", SLEPS * NSPERS);
+        printf("clkslepns(%lu)...\n", SLEPS * NSPERS);
         clkslepns(SLEPS * NSPERS);
         return EXIT_SUCCESS;
 }

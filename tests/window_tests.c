@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         wininit();
         win  = winalloc("EUROPA", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf(win);
-        i = fc = 0, a = 0, fps = 0xffffffff;
+        i = fc = 0, a = 0, fps = UINT_MAX;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         while (winopen(win)) {
@@ -55,9 +55,9 @@ int main(int argc, char *argv[])
                 }
                 winswap(win);
                 winpoll();
-                if (fps < 0xffffffff) {
+                if (fps < UINT_MAX) {
                         printf("fps=%u\n", fps);
-                        fps = 0xffffffff;
+                        fps = UINT_MAX;
                 }
                 if (tfps > 0) {
                         f  = clkfreq() / tfps;

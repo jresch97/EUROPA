@@ -30,16 +30,16 @@
 
 #include "winsys.h"
 
-bool wininit32   ();
+int  wininit32   ();
 void winterm32   ();
 void winpoll32   ();
-bool winalloc32  (WINDOW *win);
+int  winalloc32  (WINDOW *win);
 void winfree32   (WINDOW *win);
 void winrecap32  (WINDOW *win, const char* title);
 void winmove32   (WINDOW *win, int x, int y);
 void winresize32 (WINDOW *win, int w, int h);
 void winswap32   (WINDOW *win);
-bool surfalloc32 (SURFACE *surf, PXFMT *pxfmt);
+int  surfalloc32 (SURFACE *surf, PXFMT *pxfmt);
 void surffree32  (SURFACE *surf);
 
 static const WINSYS WINSYS32 = {

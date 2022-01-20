@@ -30,30 +30,24 @@
 #include <window.h>
 #include <font.h>
 
-#define WINC "EUROPA FONT TESTS"
-#define WINX WINCTR
-#define WINY WINCTR
-#define WINW 640
-#define WINH 480
-#define WIND 32
-#define TFPS 60
-#define FPTH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
+#define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
 
 int main(int argc, char *argv[])
 {
-        WINDOW   *win;
-        SURFACE  *surf;
-        FONT     *font;
-        int      c;
-        size_t   i, x, y, fps, fc, tfps;
-        uint64_t s, e, f, d, a;
+        WINDOW  *win;
+        SURFACE *surf;
+        FONT    *font;
+        int      x, y;
+        unsigned i, fc, fps, tfps;
+        uint32_t c, *px;
+        uint64_t t0, t1, dt, f, a;
         wininit();
         fontinit();
-        win  = winalloc(WINC, WINX, WINY, WINW, WINH, WIND, NULL);
+        win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
         surf = winsurf (win);
-        font = fontload(FPTH, 12);
-        i    = fc = 0, a = 0, fps = -1;
-        tfps = argc > 1 ? atoi(argv[1]) : TFPS;
+        font = fontload(PATH, 12);
+        i    = fc = 0, a = 0, fps = UINT_MAX;
+        tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         printf("fontsysd()->name=\"%s\"\n", fontsysd()->name);
         printf("font->path=\"%s\"\n", font->path);
@@ -61,28 +55,34 @@ int main(int argc, char *argv[])
         printf("font->style=\"%s\"\n", font->style);
         printf("font->pt=%d\n", font->pt);
         while (winopen(win)) {
-                s = clkelapt();
+                f  = clkfreq();
+                t0 = clkelap();
+                px = (uint32_t*)winpx(win);
                 for (y = 0; y < surf->h; y++) {
                         for (x = 0; x < surf->w; x++) {
                                 c = ((x + i) ^ (y + i)) & 0xff;
-                                ((int*)surf->px)[x + y * surf->w] = c;
+                                px[x + y * surf->w] = c;
                         }
                 }
                 winswap(win);
                 winpoll();
                 if (fps < UINT_MAX) {
-                        printf("fps=%lu\n", fps);
+                        printf("fps=%u\n", fps);
                         fps = UINT_MAX;
                 }
                 if (tfps > 0) {
-                    e = clkelapt(), f = clkfreq() / tfps, d = e - s;
-                    if (d < f) clkslept(f - d);
+                        f  = clkfreq() / tfps;
+                        t1 = clkelap();
+                        dt = t1 - t0;
+                        if (dt < f) clkslep(f - dt);
                 }
-                e = clkelapt(), f = clkfreq(), d = e - s;
-                a += (e - s);
+                f  = clkfreq();
+                t1 = clkelap();
+                dt = t1 - t0;
+                a += dt;
                 if (a >= f) {
                         fps = fc;
-                        a   = fc = 0;
+                        a = fc = 0;
                 }
                 fc++, i++;
         }

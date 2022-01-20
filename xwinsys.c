@@ -40,17 +40,18 @@
 #define XWC        (InputOutput)
 #define XATTRMASK  (CWBackPixmap)
 #define XINPUTMASK (StructureNotifyMask)
+#define XASSERT()  (assert(d.xdpy != NULL))
+#define XWD(win)   ((XWINDAT*)win->dat)
+#define XSD(surf)  ((XSURFDAT*)surf->dat)
 
-#define XASSERT() (assert(d.xdpy != NULL))
-#define XWD(win)  ((XWINDAT*)win->dat)
-#define XSD(surf) ((XSURFDAT*)surf->dat)
+typedef Window XWINDOW;
 
-static inline int xwinhash(Window xwin)
+static int xwinhsh(XWINDOW xwin)
 {
         return xwin;
 }
 
-HASHTABX(XWINHT, XWINNODE, xwinht, WINDOW*, Window, int, int, xwinhash, 2)
+HASHTABX(XWINHT, XWINNODE, xwinht, WINDOW*, XWINDOW, int, int, xwinhsh, 2)
 
 typedef struct XDAT {
         Display *xdpy;
@@ -63,7 +64,7 @@ typedef struct XDAT {
 } XDAT;
 
 typedef struct XWINDAT {
-        Window xwin;
+        XWINDOW xwin;
 } XWINDAT;
 
 typedef struct XSURFDAT {
@@ -72,26 +73,26 @@ typedef struct XSURFDAT {
         XShmSegmentInfo xshm;
 } XSURFDAT;
 
-static void   xwinxy    (Window xwin, int *x, int *y);
-static Window xwincreate(WINDOW *win);
-static int    ximgalloc (SURFACE *surf);
-static void   ximgfree  (SURFACE *surf);
-
 static XDAT d;
 
-void xwinxy(Window xwin, int *x, int *y)
+static void    xwinpos    (XWINDOW xwin, int *x, int *y);
+static XWINDOW xwincreate (WINDOW *win);
+static int     ximgalloc  (SURFACE *surf);
+static void    ximgfree   (SURFACE *surf);
+
+void xwinpos(XWINDOW xwin, int *x, int *y)
 {
-        Window tw;
-        int    tx, ty;
+        XWINDOW tw;
+        int     tx, ty;
         XASSERT();
         XTranslateCoordinates(d.xdpy, xwin, d.xroot, 0, 0, &tx, &ty, &tw);
         if (x) *x = tx;
         if (y) *y = ty;
 }
 
-Window xwincreate(WINDOW *win)
+XWINDOW xwincreate(WINDOW *win)
 {
-        Window               xwin;
+        XWINDOW              xwin;
         XSetWindowAttributes xattr;
         XASSERT();
         xattr.background_pixmap = None;
@@ -117,7 +118,7 @@ int ximgalloc(SURFACE *surf)
         if (xshmav()) {
                 sd->useshm        = 1;
                 sd->xshm.shmid    = shmget(IPC_PRIVATE,
-                                           surf->pxsz * d.xd,
+                                           surf->bytes * d.xd,
                                            IPC_CREAT | XSHMPERM);
                 sd->xshm.shmaddr  = shmat (sd->xshm.shmid, NULL, 0);
                 sd->xshm.readOnly = 0;
@@ -128,13 +129,13 @@ int ximgalloc(SURFACE *surf)
                                            surf->w, surf->h);
                 if (!sd->ximg) goto errdsh;
                 surf->px = sd->xshm.shmaddr;
-                return 1;
         }
-        else goto errret;
+        else goto err;
+        return 1;
 errdsh: XShmDetach(d.xdpy, &sd->xshm);
 errfsh: shmdt (sd->xshm.shmaddr);
         shmctl(sd->xshm.shmid, IPC_RMID, 0);
-errret: return 0;
+err:    return 0;
 }
 
 void ximgfree(SURFACE *surf)
@@ -185,10 +186,10 @@ void xterm()
 
 void xpoll()
 {
-        static WINDOW *win;
-        static Window  xwin;
-        XEvent         xe;
-        int            w, h;
+        static WINDOW  *win;
+        static XWINDOW  xwin;
+        XEvent          xe;
+        int             w, h;
         XASSERT();
         while (XPending(d.xdpy)) {
                 XNextEvent(d.xdpy, &xe);
@@ -202,13 +203,13 @@ void xpoll()
                                         win->open = 0;
                                 }
                                 break;
-                        }
+                        }   
                         case ConfigureNotify: {
                                 if (xwin != xe.xconfigure.window) {
                                         xwin = xe.xconfigure.window;
                                         xwinhtget(d.xwht, xwin, &win);
                                 }
-                                xwinxy(xwin, &win->x, &win->y);
+                                xwinpos(xwin, &win->x, &win->y);
                                 w = xe.xconfigure.width;
                                 h = xe.xconfigure.height;
                                 if (win->w == w && win->h == h) break;
@@ -225,7 +226,7 @@ void xpoll()
         }
 }
 
-bool xwinalloc(WINDOW *win)
+int xwinalloc(WINDOW *win)
 {
         XWINDAT *wd;
         XASSERT();
@@ -271,7 +272,7 @@ void xwinswap(WINDOW *win)
         }         
 }
 
-bool xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
+int xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
 {
         XSURFDAT *sd;
         XASSERT();
@@ -280,7 +281,7 @@ bool xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
         if (!sd) return 0;
         surf->dat   = sd;
         /* TODO: Handle pixel format properly. */
-        surf->bysz  = surf->pxsz * RGBA32.bypp;
+        surf->bytes = surf->size * RGBA32.bypp;
         surf->pxfmt = RGBA32;
         if (!ximgalloc(surf)) goto errfsd;
         return 1;
@@ -298,13 +299,13 @@ void xsurffree(SURFACE *surf)
         }
 }
 
-bool xshmav()
+int xshmav()
 {
         XASSERT();
         return XShmQueryExtension(d.xdpy) == 1;
 }
 
-bool xshmvers(int *maj, int *min, int *pxmav)
+int xshmvers(int *maj, int *min, int *pxmav)
 {
         int tmaj, tmin, tpxmav;
         XASSERT();
@@ -312,12 +313,12 @@ bool xshmvers(int *maj, int *min, int *pxmav)
                 if (maj)   *maj   = tmaj;
                 if (min)   *min   = tmin;
                 if (pxmav) *pxmav = tpxmav;
-                return true;
+                return 1;
         }
         else return false;
 }
 
-bool xshmpxmav()
+int xshmpxmav()
 {
         int tpxmav;
         XASSERT();

@@ -22,8 +22,6 @@
 #ifndef EUROPA_WINSYS_H
 #define EUROPA_WINSYS_H
 
-#include <stdbool.h>
-
 #include "pxfmt.h"
 
 typedef struct WINSYS   WINSYS;
@@ -36,10 +34,10 @@ typedef struct SURFACE  SURFACE;
 struct WINSYS {
         const char *name;
         const struct {
-                bool (*init)();
+                int  (*init)();
                 void (*term)();
                 void (*poll)();
-                bool (*winalloc)  (WINDOW  *win);
+                int  (*winalloc)  (WINDOW  *win);
                 void (*winfree)   (WINDOW  *win);
                 void (*winshow)   (WINDOW  *win);
                 void (*winhide)   (WINDOW  *win);
@@ -48,16 +46,16 @@ struct WINSYS {
                 void (*winresize) (WINDOW  *win, int w, int h);
                 void (*winswap)   (WINDOW  *win);
                 void (*winpush)   (WINDOW  *win);
-                bool (*surfalloc) (SURFACE *surf, PXFMT *pxfmt);
+                int  (*surfalloc) (SURFACE *surf, PXFMT *pxfmt);
                 void (*surffree)  (SURFACE *surf);
         } drv;
 };
 
 const WINSYS *winsysn  (const char *name);
 const WINSYS *winsysd  ();
-bool          wininit  ();
-bool          wininit0 ();
-bool          wininit1 (const WINSYS *sys);
+int           wininit  ();
+int           wininit0 ();
+int           wininit1 (const WINSYS *sys);
 void          winterm  ();
 void          winterm0 ();
 void          winterm1 (const WINSYS *sys);

@@ -39,6 +39,7 @@ WINDOW *winalloc1(const WINSYS *sys, const char *cap,
                   int x, int y, int w, int h, int d)
 {
         WINDOW* win;
+        assert(sys != NULL);
         win = malloc(sizeof(*win));
         if (!win) goto erret;
         win->sys  = sys;
@@ -75,7 +76,7 @@ void winfree(WINDOW *win)
         }
 }
 
-bool winopen(WINDOW *win)
+int winopen(WINDOW *win)
 {
         assert(win != NULL);
         return win->open;

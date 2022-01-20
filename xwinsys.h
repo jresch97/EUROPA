@@ -32,17 +32,17 @@
 
 #include "winsys.h"
 
-bool          xinit      ();
+int           xinit      ();
 void          xterm      ();
 void          xpoll      ();
-bool          xwinalloc  (WINDOW *win);
+int           xwinalloc  (WINDOW *win);
 void          xwinfree   (WINDOW *win);
 void          xwinswap   (WINDOW *win);
-bool          xsurfalloc (SURFACE *surf, PXFMT *pxfmt);
+int           xsurfalloc (SURFACE *surf, PXFMT *pxfmt);
 void          xsurffree  (SURFACE *surf);
-bool          xshmav     ();
-bool          xshmvers   (int *maj, int *min, int *pxmav);
-bool          xshmpxmav  ();
+int           xshmav     ();
+int           xshmvers   (int *maj, int *min, int *pxmav);
+int           xshmpxmav  ();
 unsigned long xblackpx   ();
 unsigned long xwhitepx   ();
 
@@ -54,12 +54,13 @@ static const WINSYS XWINSYS = {
                 &xpoll,
                 &xwinalloc,
                 &xwinfree,
-                NULL, /* winshow */
-                NULL, /* winhide */
-                NULL, /* winrecap */
-                NULL, /* winmove */
-                NULL, /* winresize */
+                NULL, /* xwinshow */
+                NULL, /* xwinhide */
+                NULL, /* xwinrecap */
+                NULL, /* xwinmove */
+                NULL, /* xwinresize */
                 &xwinswap,
+                NULL, /* xwinpush */
                 &xsurfalloc,
                 &xsurffree
         }

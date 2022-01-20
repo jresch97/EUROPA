@@ -33,8 +33,7 @@
 struct WINDOW {
         const WINSYS *sys;
         const char   *cap;
-        int           x, y, w, h, d;
-        bool          open;
+        int           x, y, w, h, d, open;
         SURFACE      *surf;
         void         *dat;
 };
@@ -42,8 +41,7 @@ struct WINDOW {
 typedef struct WINOPT {
         const WINSYS *sys;
         const char   *cap;
-        int           x, y, w, h, d;
-        bool          open;
+        int           x, y, w, h, d, open;
 } WINOPT;
 
 WINDOW     *winalloc  (const char *cap, int x, int y, int w, int h, int d);
@@ -52,7 +50,7 @@ WINDOW     *winalloc1 (const WINSYS *sys, const char *cap,
                        int x, int y, int w, int h, int d);
 WINDOW     *winalloc2 (const WINOPT* opt);
 void        winfree   (WINDOW *win);
-bool        winopen   (WINDOW *win);
+int         winopen   (WINDOW *win);
 void        winshow   (WINDOW *win);
 void        winhide   (WINDOW *win);
 const char *wincap    (WINDOW *win);

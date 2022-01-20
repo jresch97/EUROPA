@@ -134,7 +134,7 @@ void dibfree32(SURFACE *surf)
         }
 }
 
-bool wininit32()
+int wininit32()
 {
         if (d.hInstance)   return 1;
         d.hInstance = GetModuleHandle(NULL);
@@ -161,7 +161,7 @@ void winpoll32()
         }
 }
 
-bool winalloc32(WINDOW *win)
+int winalloc32(WINDOW *win)
 {
         WINDAT32 *wd;
         RECT      r;
@@ -233,7 +233,7 @@ void winswap32(WINDOW *win)
                                DIB_RGB_COLORS, SRCCOPY);
 }
 
-bool surfalloc32(SURFACE *surf, PXFMT *pxfmt)
+int surfalloc32(SURFACE *surf, PXFMT *pxfmt)
 {
         SURFDAT32 *sd;
         ASSERT32();
