@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         font = fntload(PATH, 72);
         txtmeas(font, MSG, &tw, &th);
         for (j = 0; j < 256; j++) C[j] = j / 255.0;
-        i    = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + th;
+        i = z = fc = 0, a = 0, fps = UINT_MAX, l = 16 + th;
         tfps = argc > 1 ? atoi(argv[1]) : 60;
         printf("winsysd()->name=\"%s\"\n", winsysd()->name);
         printf("fntsysd()->name=\"%s\"\n", fntsysd()->name);
