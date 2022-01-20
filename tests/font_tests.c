@@ -33,9 +33,10 @@
 #define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
 #define MSG  "Hello, World! "
 
-#define COV(a)       (a / 255.0f)
-#define MAP(c, a, s) ((int)(((c >> s) & 0xff) * COV(a)) << s)
+#define MAP(c, a, s) ((int)(((c >> s) & 0xff) * C[a]) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
+
+static float C[256];
 
 int txtmeas(FONT *font, const char *s, int *w, int *h, int *xadv)
 {
@@ -107,6 +108,7 @@ int main(int argc, char *argv[])
         int       z, j, k, l, w, h, sw, sh;
         unsigned  i, fc, fps, tfps;
         uint64_t  t0, t1, dt, f, g, a;
+        for (j = 0; j < 256; j++) C[j] = j / 255.0f;
         wininit();
         fntinit();
         win  = winalloc("EUROPA FONT TESTS", WINCTR, WINCTR, 640, 480, 32);
