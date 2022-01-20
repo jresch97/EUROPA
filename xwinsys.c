@@ -268,8 +268,9 @@ void xwinswap(WINDOW *win)
                              0, 0, 0, 0, surf->w, surf->h, 0);
         }
         else {
-                /* XCopyArea(...) */
-        }         
+                /* XPutImage(...) */
+        }
+        XSync(d.xdpy, False);
 }
 
 int xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
