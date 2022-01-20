@@ -33,7 +33,7 @@
 #define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
 #define MSG  "Hello World"
 
-#define MAP(c, a, s) ((((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s))
+#define MAP(c, a, s) (((int)(((c >> s) & 0xff) * (a / 255.0f)) & 0xff) << s)
 #define COL(c, a)    (MAP(c, a, 0) + MAP(c, a, 8) + MAP(c, a, 16))
 
 void txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
