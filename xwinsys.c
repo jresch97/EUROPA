@@ -128,7 +128,7 @@ int ximgalloc(SURFACE *surf)
         assert(surf != NULL);
         sd = XSD(surf);
         if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) return 0;
-        if (xshmav()) {
+        if (!xshmav()) {
                 surf->bytes = surf->w * surf->h * (xvi.depth / 8);
                 sd->useshm         = 1;
                 sd->xshm0.shmid    = shmget(IPC_PRIVATE,
@@ -160,12 +160,12 @@ int ximgalloc(SURFACE *surf)
                 sd->useshm  = 0;
                 surf->bytes = surf->w * surf->h * (xvi.depth / 8);
                 surf->px    = malloc(surf->bytes);
-                if (!surf->px) goto err;
                 sd->ximg0   = XCreateImage(d.xdpy,
                                            xvi.visual, xvi.depth, ZPixmap, 0,
-                                           surf->px, surf->w, surf->h, 0, 0);
+                                           surf->px, surf->w, surf->h,
+                                           xvi.depth, 0);
                 if (!sd->ximg0) {
-                        free(surf->px);
+                        if (surf->px) free(surf->px);
                         goto err;
                 }
         }
@@ -193,9 +193,26 @@ void ximgfree(SURFACE *surf)
                         XShmDetach(d.xdpy, &sd->xshm1);
                         shmdt (sd->xshm1.shmaddr);
                         shmctl(sd->xshm1.shmid, IPC_RMID, 0);
+                        if (sd->ximg0) {
+                                XDestroyImage(sd->ximg0);
+                                sd->ximg0 = NULL;
+                        }
+                        if (sd->ximg1) {
+                                XDestroyImage(sd->ximg1);
+                                sd->ximg1 = NULL;
+                        }
                 }
-                if (sd->ximg0) XDestroyImage(sd->ximg0);
-                if (sd->ximg1) XDestroyImage(sd->ximg1);
+                else {
+                        if (sd->ximg0) {
+                                XDestroyImage(sd->ximg0);
+                                sd->ximg0 = NULL;
+                        }
+                        else if (surf->px) {
+                                free(surf->px);
+                                surf->px = NULL;
+                        }
+                }
+                
         }
 }
 
@@ -327,7 +344,7 @@ void xwinswap(WINDOW *win)
                 }
         }
         else {
-                XPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg0,
+                XPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg0,
                           0, 0, 0, 0, surf->w, surf->h);
         }
 }
