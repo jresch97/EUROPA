@@ -1,5 +1,8 @@
 X11
 
+XSync()
+- Calling XSync() in winpoll() seems to work well.
+
 Raw Sockets vs Xlib/XCB
 - Performance gains by using raw sockets over Xlib?
 - XCB is badly documented.
