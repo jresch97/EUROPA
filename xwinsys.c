@@ -128,7 +128,7 @@ int ximgalloc(SURFACE *surf)
         assert(surf != NULL);
         sd = XSD(surf);
         if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) return 0;
-        if (!xshmav()) {
+        if (xshmav()) {
                 surf->bytes = surf->w * surf->h * (xvi.depth / 8);
                 sd->useshm         = 1;
                 sd->xshm0.shmid    = shmget(IPC_PRIVATE,
