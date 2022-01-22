@@ -261,6 +261,7 @@ void xpoll()
                                 if (win->w == w && win->h == h) break;
                                 win->w       = w, win->h       = h;
                                 win->surf->w = w, win->surf->h = h;
+                                win->surf->size = w * h;
                                 /* TODO: What if ximgalloc fails? */
                                 ximgfree(win->surf);
                                 ximgalloc(win->surf);
@@ -310,6 +311,8 @@ void xwinswap(WINDOW *win)
         wd = XWD(win);
         sd = XSD(surf);
         if (sd->useshm) {
+                /* XShmPutImage is async so two images are needed to prevent
+                 * writing to the buffer being blitted to the window. */
                 if (sd->curr == sd->ximg0) {
                         surf->px = sd->xshm1.shmaddr;
                         sd->curr = sd->ximg1;
