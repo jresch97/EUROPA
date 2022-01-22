@@ -55,13 +55,13 @@ static int xwinhsh(XWINDOW xwin)
 HASHTABX(XWINHT, XWINNODE, xwinht, WINDOW*, XWINDOW, int, int, xwinhsh, 2)
 
 typedef struct XDAT {
-        Display *xdpy;
-        Window   xroot;
-        int      xscr, xd;
-        GC       xgc;
-        Visual  *xvis;
-        XWINHT  *xwht;
-        Atom     xwmdm;
+        Display   *xdpy;
+        Window     xroot;
+        int        xscr, xd;
+        GC         xgc;
+        Visual    *xvis;
+        XWINHT    *xwht;
+        Atom       xwmdm;
 } XDAT;
 
 typedef struct XWINDAT {
@@ -69,9 +69,9 @@ typedef struct XWINDAT {
 } XWINDAT;
 
 typedef struct XSURFDAT {
-        XImage         *ximg;
+        XImage         *ximg0, *ximg1, *curr;
         int             useshm;
-        XShmSegmentInfo xshm;
+        XShmSegmentInfo xshm0, xshm1;
 } XSURFDAT;
 
 static XDAT d;
@@ -123,36 +123,51 @@ int ximgalloc(SURFACE *surf)
         if (!XMatchVisualInfo(d.xdpy, d.xscr, d.xd, TrueColor, &xvi)) return 0;
         if (xshmav()) {
                 sd->useshm        = 1;
-                sd->xshm.shmid    = shmget(IPC_PRIVATE,
-                                           surf->w * surf->h * d.xd,
-                                           IPC_CREAT | XSHMPERM);
-                sd->xshm.shmaddr  = shmat (sd->xshm.shmid, NULL, 0);
-                sd->xshm.readOnly = 0;
-                if (!XShmAttach(d.xdpy, &sd->xshm)) goto errfsh;
-                sd->ximg = XShmCreateImage(d.xdpy,
-                                           xvi.visual, xvi.depth, ZPixmap,
-                                           sd->xshm.shmaddr, &sd->xshm,
-                                           surf->w, surf->h);
-                if (!sd->ximg) goto errdsh;
-                surf->px = sd->xshm.shmaddr;
+                sd->xshm0.shmid    = shmget(IPC_PRIVATE,
+                                            surf->w * surf->h * d.xd,
+                                            IPC_CREAT | XSHMPERM);
+                sd->xshm0.shmaddr  = shmat (sd->xshm0.shmid, NULL, 0);
+                sd->xshm0.readOnly = 0;
+                sd->xshm1.shmid    = shmget(IPC_PRIVATE,
+                                            surf->w * surf->h * d.xd,
+                                            IPC_CREAT | XSHMPERM);
+                sd->xshm1.shmaddr  = shmat (sd->xshm1.shmid, NULL, 0);
+                sd->xshm1.readOnly = 0;
+                if (!XShmAttach(d.xdpy, &sd->xshm0)) goto errfsh;
+                if (!XShmAttach(d.xdpy, &sd->xshm1)) goto errfsh;
+                sd->ximg0 = XShmCreateImage(d.xdpy,
+                                            xvi.visual, xvi.depth, ZPixmap,
+                                            sd->xshm0.shmaddr, &sd->xshm0,
+                                            surf->w, surf->h);
+                if (!sd->ximg0) goto errdsh;
+                sd->ximg1 = XShmCreateImage(d.xdpy,
+                                            xvi.visual, xvi.depth, ZPixmap,
+                                            sd->xshm1.shmaddr, &sd->xshm1,
+                                            surf->w, surf->h);
+                if (!sd->ximg1) goto errdsh;
+                surf->px = sd->xshm0.shmaddr;
+                sd->curr = sd->ximg0;
         }
         else {
                 sd->useshm = 0;
                 surf->px   = malloc(surf->w * surf->h * d.xd);
                 if (!surf->px) goto err;
-                sd->ximg = XCreateImage(d.xdpy,
-                                        xvi.visual, xvi.depth, ZPixmap, 0,
-                                        surf->px, surf->w, surf->h, 32,
-                                        0);
-                if (!sd->ximg) {
+                sd->ximg0  = XCreateImage(d.xdpy,
+                                          xvi.visual, xvi.depth, ZPixmap, 0,
+                                          surf->px, surf->w, surf->h, 32,
+                                          0);
+                if (!sd->ximg0) {
                         free(surf->px);
                         goto err;
                 }
         }
         return 1;
-errdsh: XShmDetach(d.xdpy, &sd->xshm);
-errfsh: shmdt (sd->xshm.shmaddr);
-        shmctl(sd->xshm.shmid, IPC_RMID, 0);
+errdsh: XShmDetach(d.xdpy, &sd->xshm0);
+        XShmDetach(d.xdpy, &sd->xshm1);
+errfsh: shmdt (sd->xshm0.shmaddr);
+        shmdt (sd->xshm1.shmaddr);
+        shmctl(sd->xshm0.shmid, IPC_RMID, 0);
+        shmctl(sd->xshm1.shmid, IPC_RMID, 0);
 err:    return 0;
 }
 
@@ -164,13 +179,15 @@ void ximgfree(SURFACE *surf)
         if (surf && surf->dat) {
                 sd = XSD(surf);
                 if (sd->useshm) {
-                        XShmDetach(d.xdpy, &sd->xshm);
-                        shmdt (sd->xshm.shmaddr);
-                        shmctl(sd->xshm.shmid, IPC_RMID, 0);
+                        XShmDetach(d.xdpy, &sd->xshm0);
+                        shmdt (sd->xshm0.shmaddr);
+                        shmctl(sd->xshm0.shmid, IPC_RMID, 0);
+                        XShmDetach(d.xdpy, &sd->xshm1);
+                        shmdt (sd->xshm0.shmaddr);
+                        shmctl(sd->xshm0.shmid, IPC_RMID, 0);
                 }
-                if (sd->ximg) {
-                	XDestroyImage(sd->ximg);
-        	}
+                if (sd->ximg0) XDestroyImage(sd->ximg0);
+                if (sd->ximg1) XDestroyImage(sd->ximg1);
         }
 }
 
@@ -285,12 +302,22 @@ void xwinswap(WINDOW *win)
         wd = XWD(win);
         sd = XSD(surf);
         if (sd->useshm) {
-                XShmPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg,
-                             0, 0, 0, 0, surf->w, surf->h, 0);
-                XSync(d.xdpy, 0);
+                if (sd->curr == sd->ximg0) {
+                        XShmPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg0,
+                                     0, 0, 0, 0, surf->w, surf->h, 0);
+                        surf->px = sd->xshm1.shmaddr;
+                        sd->curr = sd->ximg1;
+                }
+                else {
+                        XShmPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg1,
+                                     0, 0, 0, 0, surf->w, surf->h, 0);
+                        surf->px = sd->xshm0.shmaddr;
+                        sd->curr = sd->ximg0;
+                }
+                //XSync(d.xdpy, 0);
         }
         else {
-                XPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg,
+                XPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg0,
                           0, 0, 0, 0, surf->w, surf->h);
         }
 }
