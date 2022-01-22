@@ -122,7 +122,7 @@ int ximgalloc(SURFACE *surf)
         sd = XSD(surf);
         if (!XMatchVisualInfo(d.xdpy, d.xscr, d.xd, TrueColor, &xvi)) return 0;
         if (xshmav()) {
-                sd->useshm        = 1;
+                sd->useshm         = 1;
                 sd->xshm0.shmid    = shmget(IPC_PRIVATE,
                                             surf->w * surf->h * d.xd,
                                             IPC_CREAT | XSHMPERM);
@@ -146,11 +146,13 @@ int ximgalloc(SURFACE *surf)
                                             surf->w, surf->h);
                 if (!sd->ximg1) goto errdsh;
                 surf->px = sd->xshm0.shmaddr;
+                surf->bytes = surf->w * surf->h * d.xd;
                 sd->curr = sd->ximg0;
         }
         else {
                 sd->useshm = 0;
                 surf->px   = malloc(surf->w * surf->h * d.xd);
+                surf->bytes = surf->w * surf->h * 32;
                 if (!surf->px) goto err;
                 sd->ximg0  = XCreateImage(d.xdpy,
                                           xvi.visual, xvi.depth, ZPixmap, 0,
@@ -183,8 +185,8 @@ void ximgfree(SURFACE *surf)
                         shmdt (sd->xshm0.shmaddr);
                         shmctl(sd->xshm0.shmid, IPC_RMID, 0);
                         XShmDetach(d.xdpy, &sd->xshm1);
-                        shmdt (sd->xshm0.shmaddr);
-                        shmctl(sd->xshm0.shmid, IPC_RMID, 0);
+                        shmdt (sd->xshm1.shmaddr);
+                        shmctl(sd->xshm1.shmid, IPC_RMID, 0);
                 }
                 if (sd->ximg0) XDestroyImage(sd->ximg0);
                 if (sd->ximg1) XDestroyImage(sd->ximg1);
@@ -314,7 +316,6 @@ void xwinswap(WINDOW *win)
                         surf->px = sd->xshm0.shmaddr;
                         sd->curr = sd->ximg0;
                 }
-                //XSync(d.xdpy, 0);
         }
         else {
                 XPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg0,
