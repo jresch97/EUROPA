@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
         FONT     *font;
         int       z, j, k, l, tw, th;
         unsigned  i, fc, fps, tfps;
+        uint32_t *px;
         uint64_t  t0, t1, dt, f, g, a;
         wininit();
         fntinit();
@@ -123,11 +124,15 @@ int main(int argc, char *argv[])
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                memset(surf->px, 0xff000000, surf->bytes);
+                px = (uint32_t*)surf->px;
+                memset(px, 0xff000000, surf->bytes);
                 for (j = 0; j < surf->w; j += tw) {
                         for (k = 0; k < surf->h; k += l) {
                                 txtdraw(surf, font, MSG, j, k, rand());
                         }
+                }
+                for (j = 0; j < surf->size; j++) {
+                        px[j] |= 0xff000000;
                 }
                 winswap(win);
                 winpoll();
