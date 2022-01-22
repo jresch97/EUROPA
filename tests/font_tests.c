@@ -30,7 +30,7 @@
 #include <window.h>
 #include <font.h>
 
-#define PATH "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
+#define PATH "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf"
 #define MSG  "Hello, World! "
 
 #define MAP(c, a, s) ((int)(((c >> s) & 0xff) * C[a]) << s)
@@ -89,7 +89,9 @@ int txtdraw(SURFACE *surf, FONT *font, const char *s, int x, int y, int c)
                                 tx = gx + xadv;
                                 if (tx < 0 || tx >= sw) continue;
                                 a = gpx[gx + gy * gw];
-                                if (a > 0) px[tx + ty * sw] = COL(c, a);
+                                if (a > 0) {
+                                        px[tx + ty * sw] = 0xff000000 | COL(c, a);
+                                }
                         }
                 }
         adv:    xadv += g->xadv;
@@ -125,14 +127,13 @@ int main(int argc, char *argv[])
                 f  = clkfreq();
                 t0 = clkelap();
                 px = (uint32_t*)surf->px;
-                memset(px, 0xff000000, surf->bytes);
+                for (j = 0; j < surf->size; j++) {
+                        px[j] = 0xff000000;
+                }
                 for (j = 0; j < surf->w; j += tw) {
                         for (k = 0; k < surf->h; k += l) {
                                 txtdraw(surf, font, MSG, j, k, rand());
                         }
-                }
-                for (j = 0; j < surf->size; j++) {
-                        px[j] |= 0xff000000;
                 }
                 winswap(win);
                 winpoll();

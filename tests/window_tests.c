@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
                 for (y = 0; y < sh; y++) {
                         for (x = 0; x < sw; x++) {
                                 c = (x * x + y * y + i) & 0xff;
-                                c = c | 0x0f000000;
+                                c = c | 0xff000000;
                                 px[x + y * sw] = c;
                         }
                 }

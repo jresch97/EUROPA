@@ -32,180 +32,111 @@
 #include <X11/extensions/XShm.h>
 
 #include "xwinsys.h"
-#include "window.h"
 #include "hashtabx.h"
+#include "window.h"
 
-#define XWINHTSZ   (257)
-#define XSHMPERM   (0600)
-#define XWC        (InputOutput)
-#define XATTRMASK  (CWBitGravity | CWBackPixel | CWBackPixmap | CWColormap | \
-                    CWEventMask | CWBorderPixel)
-#define XINPUTMASK (StructureNotifyMask)
-#define XASSERT()  (assert(d.xdpy != NULL))
-#define XWD(win)   ((XWINDAT*)win->dat)
-#define XSD(surf)  ((XSURFDAT*)surf->dat)
+#define XWINHTSZ  (257)
+#define XWD(win)  ((XWINDAT*)win->dat)
+#define XSD(surf) ((XSURFDAT*)surf->dat)
 
-typedef Window XWINDOW;
-
-static int xwinhsh(XWINDOW xwin)
+static int xwinhsh(Window xwin)
 {
         return xwin;
 }
 
-HASHTABX(XWINHT, XWINNODE, xwinht, WINDOW*, XWINDOW, int, int, xwinhsh, 2)
+HASHTABX(XWINHT, XWINND, xwinht, WINDOW*, Window, int, int, xwinhsh, 2)
 
 typedef struct XDAT {
-        Display   *xdpy;
-        Window     xroot;
-        int        xscr, xd;
-        GC         xgc;
-        Visual    *xvis;
-        XWINHT    *xwht;
-        Atom       xwmdm;
+        Display *xdpy;
+        Window   xroot;
+        int      xscr, xd;
+        GC       xgc;
+        Visual  *xvis;
+        XWINHT  *xwht;
+        Atom     xwmdm;
 } XDAT;
 
 typedef struct XWINDAT {
-        XWINDOW xwin;
-        GC      xgc;
+        Window xwin;
+        GC     xgc;
 } XWINDAT;
 
 typedef struct XSURFDAT {
-        XImage         *ximg0, *ximg1, *curr;
+        XImage         *ximg;
+        XShmSegmentInfo xshm;
         int             useshm;
-        XShmSegmentInfo xshm0, xshm1;
 } XSURFDAT;
 
 static XDAT d;
 
-static void    xwinpos    (XWINDOW xwin, int *x, int *y);
-static XWINDOW xwincreate (WINDOW *win);
-static int     ximgalloc  (SURFACE *surf);
-static void    ximgfree   (SURFACE *surf);
-
-void xwinpos(XWINDOW xwin, int *x, int *y)
-{
-        XWINDOW tw;
-        int     tx, ty;
-        XASSERT();
-        XTranslateCoordinates(d.xdpy, xwin, d.xroot, 0, 0, &tx, &ty, &tw);
-        XFlush(d.xdpy);
-        if (x) *x = tx;
-        if (y) *y = ty;
-}
-
-XWINDOW xwincreate(WINDOW *win)
-{
-        XWINDAT             *wd;
-        XWINDOW              xwin;
-        XSetWindowAttributes xattr;
-        XVisualInfo          xvi;
-        XASSERT();
-        wd = XWD(win);
-        if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) return 0;
-        xattr.bit_gravity = StaticGravity;
-        xattr.background_pixel = 0;
-        xattr.background_pixmap = None;
-        xattr.border_pixel = 0;
-        xattr.colormap = XCreateColormap(d.xdpy, d.xroot, xvi.visual, AllocNone);
-        xattr.event_mask = XINPUTMASK;
-        xwin = XCreateWindow(d.xdpy, d.xroot, win->x, win->y, win->w, win->h,
-                             0, xvi.depth, XWC, xvi.visual, XATTRMASK, &xattr);
-        if (!xwin) return 0;
-        wd->xgc = XCreateGC(d.xdpy, xwin, 0, 0);
-        XSetWMProtocols(d.xdpy, xwin, &d.xwmdm, 1);
-        XStoreName     (d.xdpy, xwin, win->cap);
-        XMapWindow     (d.xdpy, xwin);
-        XFlush         (d.xdpy);
-        xwinhtins      (d.xwht, xwin, win);
-        return xwin;
-}
-
-int ximgalloc(SURFACE *surf)
+static int ximgalloc(SURFACE *surf)
 {
         XSURFDAT   *sd;
         XVisualInfo xvi;
-        XASSERT();
+        int         w, h, bytes;
         assert(surf != NULL);
         sd = XSD(surf);
-        if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) return 0;
-        if (xshmav()) {
-                surf->bytes = surf->w * surf->h * (xvi.depth / 8);
-                sd->useshm         = 1;
-                sd->xshm0.shmid    = shmget(IPC_PRIVATE,
-                                            surf->bytes,
-                                            IPC_CREAT | XSHMPERM);
-                sd->xshm0.shmaddr  = shmat (sd->xshm0.shmid, NULL, 0);
-                sd->xshm0.readOnly = 0;
-                if (!XShmAttach(d.xdpy, &sd->xshm0)) goto errfsh;
-                sd->xshm1.shmid    = shmget(IPC_PRIVATE,
-                                            surf->bytes,
-                                            IPC_CREAT | XSHMPERM);
-                sd->xshm1.shmaddr  = shmat (sd->xshm1.shmid, NULL, 0);
-                sd->xshm1.readOnly = 0;
-                if (!XShmAttach(d.xdpy, &sd->xshm1)) goto errfsh;
-                sd->ximg0 = XShmCreateImage(d.xdpy,
-                                            xvi.visual, xvi.depth, ZPixmap,
-                                            sd->xshm0.shmaddr, &sd->xshm0,
-                                            surf->w, surf->h);
-                if (!sd->ximg0) goto errdsh;
-                sd->ximg1 = XShmCreateImage(d.xdpy,
-                                            xvi.visual, xvi.depth, ZPixmap,
-                                            sd->xshm1.shmaddr, &sd->xshm1,
-                                            surf->w, surf->h);
-                if (!sd->ximg1) goto errdsh;
-                surf->px = sd->xshm0.shmaddr;
-                sd->curr = sd->ximg0;
+        if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) {
+                return 0;
+        }
+        w = surf->w, h = surf->h;
+        bytes = w * h * (xvi.depth / 8);
+        surf->bytes = bytes;
+        sd->useshm = xshmav();
+        if (sd->useshm) {
+                sd->xshm.shmid = shmget(IPC_PRIVATE, bytes, IPC_CREAT | 0600);
+                if (sd->xshm.shmid < 0) return 0;
+                sd->xshm.shmaddr = shmat(sd->xshm.shmid, NULL, 0);
+                if (sd->xshm.shmaddr == NULL) goto errrs;
+                sd->xshm.readOnly = 0;
+                if (!XShmAttach(d.xdpy, &sd->xshm)) goto errfs;
+                sd->ximg = XShmCreateImage(d.xdpy, xvi.visual, xvi.depth,
+                                           ZPixmap, sd->xshm.shmaddr,
+                                           &sd->xshm, w, h);
+                if (!sd->ximg) goto errds;
+                surf->px = sd->xshm.shmaddr;
         }
         else {
-                sd->useshm  = 0;
-                surf->bytes = surf->w * surf->h * (xvi.depth / 8);
-                surf->px    = malloc(surf->bytes);
-                sd->ximg0   = XCreateImage(d.xdpy,
-                                           xvi.visual, xvi.depth, ZPixmap, 0,
-                                           surf->px, surf->w, surf->h,
-                                           xvi.depth, 0);
-                if (!sd->ximg0) {
-                        if (surf->px) free(surf->px);
-                        goto err;
+                surf->px = malloc(bytes);
+                if (!surf->px) return 0;
+                sd->ximg = XCreateImage(d.xdpy, xvi.visual, xvi.depth, ZPixmap,
+                                        0, surf->px, w, h, xvi.depth, 0);
+                if (!sd->ximg) {
+                        if (surf->px) {
+                                free(surf->px);
+                                surf->px = NULL;
+                        }
+                        return 0;
                 }
         }
         return 1;
-errdsh: XShmDetach(d.xdpy, &sd->xshm0);
-        XShmDetach(d.xdpy, &sd->xshm1);
-errfsh: shmdt (sd->xshm0.shmaddr);
-        shmdt (sd->xshm1.shmaddr);
-        shmctl(sd->xshm0.shmid, IPC_RMID, 0);
-        shmctl(sd->xshm1.shmid, IPC_RMID, 0);
-err:    return 0;
+errds:  XShmDetach(d.xdpy, &sd->xshm);
+errfs:  shmdt (sd->xshm.shmaddr);
+        sd->xshm.shmaddr = NULL;
+errrs:  shmctl(sd->xshm.shmid, IPC_RMID, 0);
+        return 0;
 }
 
-void ximgfree(SURFACE *surf)
+static void ximgfree(SURFACE *surf)
 {
         XSURFDAT *sd;
-        XASSERT();
         assert(surf != NULL);
-        if (surf && surf->dat) {
+        if (surf) {
                 sd = XSD(surf);
                 if (sd->useshm) {
-                        XShmDetach(d.xdpy, &sd->xshm0);
-                        shmdt (sd->xshm0.shmaddr);
-                        shmctl(sd->xshm0.shmid, IPC_RMID, 0);
-                        XShmDetach(d.xdpy, &sd->xshm1);
-                        shmdt (sd->xshm1.shmaddr);
-                        shmctl(sd->xshm1.shmid, IPC_RMID, 0);
-                        if (sd->ximg0) {
-                                XDestroyImage(sd->ximg0);
-                                sd->ximg0 = NULL;
-                        }
-                        if (sd->ximg1) {
-                                XDestroyImage(sd->ximg1);
-                                sd->ximg1 = NULL;
+                        XShmDetach(d.xdpy, &sd->xshm);
+                        shmdt(sd->xshm.shmaddr);
+                        sd->xshm.shmaddr = NULL;
+                        shmctl(sd->xshm.shmid, IPC_RMID, 0);
+                        if (sd->ximg) {
+                                XDestroyImage(sd->ximg);
+                                sd->ximg = NULL;
                         }
                 }
                 else {
-                        if (sd->ximg0) {
-                                XDestroyImage(sd->ximg0);
-                                sd->ximg0 = NULL;
+                        if (sd->ximg) {
+                                XDestroyImage(sd->ximg);
+                                sd->ximg = NULL;
                         }
                         else if (surf->px) {
                                 free(surf->px);
@@ -228,7 +159,6 @@ int xinit()
         d.xgc   = DefaultGC(d.xdpy, d.xscr);
         d.xwmdm = XInternAtom(d.xdpy, "WM_DELETE_WINDOW", False);
         d.xwht  = xwinhtalloc(XWINHTSZ);
-        XFlush(d.xdpy);
         if (!d.xwht) goto err;
         return 1;
 err:    d.xdpy = NULL;
@@ -238,52 +168,60 @@ err:    d.xdpy = NULL;
 void xterm()
 {
         if (d.xdpy) {
-                if (d.xwht) {
-                        xwinhtfree(d.xwht);
-                        d.xwht = NULL;
-                }
                 XCloseDisplay(d.xdpy);
                 d.xdpy = NULL;
         }
+        if (d.xwht) {
+                xwinhtfree(d.xwht);
+                d.xwht = NULL;
+        }
+}
+
+static void xclient(XEvent *xev)
+{
+        static WINDOW *win;
+        if (!xwinhtget(d.xwht, xev->xclient.window, &win)) return;
+        if (!win) return;
+        if (xev->xclient.data.l[0] == d.xwmdm) win->open = 0;
+}
+
+static void xconfig(XEvent *xev)
+{
+        static WINDOW *win;
+        static Window  xwin, twin;
+        SURFACE       *surf;
+        int            w, h;
+        xwin = xev->xconfigure.window;
+        if (!xwinhtget(d.xwht, xwin, &win)) return;
+        if (!win) return;
+        surf = win->surf;
+        XTranslateCoordinates(d.xdpy, xwin, d.xroot, 0, 0,
+                              &win->x, &win->y, &twin);
+        w = xev->xconfigure.width;
+        h = xev->xconfigure.height;
+        if (win->w == w && win->h == h) return;
+        win->w     = w;
+        win->h     = h;
+        surf->w    = w;
+        surf->h    = h;
+        surf->size = w * h;
+        ximgfree(surf);
+        ximgalloc(surf);
 }
 
 void xpoll()
 {
-        static WINDOW  *win;
-        static XWINDOW  xwin;
-        XEvent          xe;
-        int             w, h;
-        XASSERT();
+        XEvent xev;
+        assert(d.xdpy != NULL);
         while (XPending(d.xdpy)) {
-                XNextEvent(d.xdpy, &xe);
-                switch (xe.type) {
-                        case ClientMessage: {
-                                if (xwin != xe.xclient.window) {
-                                        xwin = xe.xclient.window;
-                                        xwinhtget(d.xwht, xwin, &win);
-                                }
-                                if (xe.xclient.data.l[0] == d.xwmdm) {
-                                        win->open = 0;
-                                }
+                XNextEvent(d.xdpy, &xev);
+                switch (xev.type) {
+                        case ClientMessage:
+                                xclient(&xev);
                                 break;
-                        }   
-                        case ConfigureNotify: {
-                                if (xwin != xe.xconfigure.window) {
-                                        xwin = xe.xconfigure.window;
-                                        xwinhtget(d.xwht, xwin, &win);
-                                }
-                                xwinpos(xwin, &win->x, &win->y);
-                                w = xe.xconfigure.width;
-                                h = xe.xconfigure.height;
-                                if (win->w == w && win->h == h) break;
-                                win->w       = w, win->h       = h;
-                                win->surf->w = w, win->surf->h = h;
-                                win->surf->size = w * h;
-                                /* TODO: What if ximgalloc fails? */
-                                ximgfree(win->surf);
-                                ximgalloc(win->surf);
+                        case ConfigureNotify:
+                                xconfig(&xev);
                                 break;
-                        }
                         default:
                                 break;
                 }
@@ -292,15 +230,40 @@ void xpoll()
 
 int xwinalloc(WINDOW *win)
 {
-        XWINDAT *wd;
-        XASSERT();
-        assert(win != NULL);
+        XWINDAT             *wd;
+        XSetWindowAttributes swa;
+        XVisualInfo          vi;
+        assert(d.xdpy != NULL);
+        assert(win    != NULL);
         wd = malloc(sizeof(*wd));
         if (!wd) return 0;
         win->dat = wd;
-        wd->xwin = xwincreate(win);
+        if (!XMatchVisualInfo(d.xdpy, d.xscr, win->d, TrueColor, &vi)) {
+                goto errfwd;
+        }
+        swa.bit_gravity       = StaticGravity;
+        swa.background_pixel  = XBlackPixel(d.xdpy, d.xscr);
+        swa.border_pixel      = XBlackPixel(d.xdpy, d.xscr);
+        swa.background_pixmap = None;
+        swa.event_mask        = StructureNotifyMask;
+        swa.colormap          = XCreateColormap(d.xdpy, d.xroot, vi.visual,
+                                                AllocNone);
+        wd->xwin = XCreateWindow(d.xdpy, d.xroot, win->x, win->y, win->w,
+                                 win->h, 0, vi.depth, InputOutput, vi.visual,
+                                 CWBitGravity  | CWBackPixel | CWBackPixmap |
+                                 CWBorderPixel | CWEventMask | CWColormap,
+                                 &swa);
         if (!wd->xwin) goto errfwd;
+        wd->xgc = XCreateGC(d.xdpy, wd->xwin, 0, 0);
+        if (!wd->xgc) goto errdxw;
+        if (!xwinhtins(d.xwht, wd->xwin, win)) goto errdxw;
+        XSetWMProtocols(d.xdpy, wd->xwin, &d.xwmdm, 1);
+        XStoreName(d.xdpy, wd->xwin, win->cap);
+        XMapWindow(d.xdpy, wd->xwin);
+        XFlush(d.xdpy);
         return 1;
+errdxw: XDestroyWindow(d.xdpy, wd->xwin);
+        XFreeColormap(d.xdpy, swa.colormap);
 errfwd: free(wd);
         return 0;
 }
@@ -308,12 +271,17 @@ errfwd: free(wd);
 void xwinfree(WINDOW *win)
 {
         XWINDAT *wd;
-        XASSERT();
-        assert(win != NULL);
+        assert(d.xdpy != NULL);
+        assert(win    != NULL);
         if (win) {
                 wd = XWD(win);
-                if (wd->xwin) XDestroyWindow(d.xdpy, wd->xwin);
-                free(wd);
+                if (wd) {
+                        if (wd->xwin) {
+                                XDestroyWindow(d.xdpy, wd->xwin);
+                        }
+                        free(wd);
+                        win->dat = NULL;
+                }
         }
 }
 
@@ -322,38 +290,23 @@ void xwinswap(WINDOW *win)
         SURFACE  *surf;
         XWINDAT  *wd;
         XSURFDAT *sd;
-        assert(win != NULL);
         assert(d.xdpy != NULL);
+        assert(win    != NULL);
         surf = win->surf;
         wd = XWD(win);
         sd = XSD(surf);
-        if (sd->useshm) {
-                /* XShmPutImage is async so two images are needed to prevent
-                 * writing to the buffer being blitted to the window. */
-                if (sd->curr == sd->ximg0) {
-                        surf->px = sd->xshm1.shmaddr;
-                        sd->curr = sd->ximg1;
-                        XShmPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg0,
+        if (sd->useshm) XShmPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg,
                                      0, 0, 0, 0, surf->w, surf->h, 0);
-                }
-                else {
-                        surf->px = sd->xshm0.shmaddr;
-                        sd->curr = sd->ximg0;
-                        XShmPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg1,
-                                     0, 0, 0, 0, surf->w, surf->h, 0);
-                }
-        }
-        else {
-                XPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg0,
-                          0, 0, 0, 0, surf->w, surf->h);
-        }
+        else XPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg,
+                       0, 0, 0, 0, surf->w, surf->h);
+        XSync(d.xdpy, False);
 }
 
 int xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
 {
         XSURFDAT *sd;
-        XASSERT();
-        assert(surf != NULL);
+        assert(d.xdpy != NULL);
+        assert(surf   != NULL);
         sd = malloc(sizeof(*sd));
         if (!sd) return 0;
         surf->dat   = sd;
@@ -367,24 +320,27 @@ errfsd: free(sd);
 
 void xsurffree(SURFACE *surf)
 {
-        XASSERT();
-        assert(surf != NULL);
+        assert(d.xdpy != NULL);
+        assert(surf   != NULL);
         if (surf) {
                 ximgfree(surf);
-                if (surf->dat) free(surf->dat);
+                if (surf->dat) {
+                        free(surf->dat);
+                        surf->dat = NULL;
+                }
         }
 }
 
 int xshmav()
 {
-        XASSERT();
+        assert(d.xdpy != NULL);
         return XShmQueryExtension(d.xdpy) == 1;
 }
 
 int xshmvers(int *maj, int *min, int *pxmav)
 {
         int tmaj, tmin, tpxmav;
-        XASSERT();
+        assert(d.xdpy != NULL);
         if (XShmQueryVersion(d.xdpy, &tmaj, &tmin, &tpxmav) == 1) {
                 if (maj)   *maj   = tmaj;
                 if (min)   *min   = tmin;
@@ -397,7 +353,7 @@ int xshmvers(int *maj, int *min, int *pxmav)
 int xshmpxmav()
 {
         int tpxmav;
-        XASSERT();
+        assert(d.xdpy != NULL);
         if (xshmvers(NULL, NULL, &tpxmav)) {
                 return tpxmav == 1;
         }
@@ -406,13 +362,13 @@ int xshmpxmav()
 
 unsigned long xblackpx()
 {
-        XASSERT();
+        assert(d.xdpy != NULL);
         return BlackPixel(d.xdpy, d.xscr);
 }
 
 unsigned long xwhitepx()
 {
-        XASSERT();
+        assert(d.xdpy != NULL);
         return WhitePixel(d.xdpy, d.xscr);
 }
 
