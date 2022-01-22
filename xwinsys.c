@@ -213,7 +213,6 @@ void xpoll()
 {
         XEvent xev;
         assert(d.xdpy != NULL);
-        XSync(d.xdpy, False);
         while (XPending(d.xdpy)) {
                 XNextEvent(d.xdpy, &xev);
                 switch (xev.type) {
@@ -227,6 +226,7 @@ void xpoll()
                                 break;
                 }
         }
+        XSync(d.xdpy, False);
 }
 
 int xwinalloc(WINDOW *win)
