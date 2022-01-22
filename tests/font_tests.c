@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
                 }
                 winswap(win);
                 winpoll();
-                clkslepms(1);
                 if (fps < UINT_MAX) {
                         printf("fps=%u\n", fps);
                         fps = UINT_MAX;
