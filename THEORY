@@ -1,0 +1,45 @@
+X11
+
+Raw Sockets vs Xlib/XCB
+- Performance gains by using raw sockets over Xlib?
+- XCB is badly documented.
+- X protocol is easy.
+- EUROPA uses very little of X protocol.
+- Can eliminate dependencies of Xlib, Xexts, and XCB?
+- GLX only works with Xlib? Does it use standard X protocol?
+- Can we work around XSync() issue with raw server messages?
+
+X11 Window Blitting Methods
+
+XImage/XPutImage
+- XSync() is maybe not necessary at all?
+- Maybe provide the user an option to call XSync or not when swapping?
+- All tests have succeeded with XPutImage without XSync() but need to test on
+  more hardware.
+- If XSync() is not necessary, XImage/XPutImage performs better than MIT-SHM in
+  previous tests.
+- Framerate limiting solves XSync() issue due to sleeping but not reliable?
+- Maybe add a winsync() routine? Combining XSync() with framerate limiting is
+  slow! Syncing outside of the frametime could help? Still want polling and
+  swapping inside of frametime?
+
+MIT-SHM/XShmPutImage
+- Do not bother trying double buffering to eliminate XSync(). It works
+  sometimes and other times it doesn't.
+- Use when available? Provide option to enable at runtime? Performance gain is
+  small due to XSync() requirement to prevent tearing. Need to test on better
+  hardware.
+- See XImage section above about XSync().
+- Do MIT-SHM pixmaps have same issue?
+
+GLX/glTexSubImage2D
+- Seems like it would be faster than MIT-SHM or XImage on hardware with good
+  graphics drivers/hardware. Provide an option in xwinsys?
+- OpenGL calls needed are available since 2.1.
+	- glTexSubImage2D might not perform well on old drivers/GPUs.
+- glTexSubImage2D performs well on tested hardware.
+	- Or is it optimized out without draw calls?
+- Draw calls are bottleneck?
+- No performance gain from simple shaders replacing fixed function pipeline
+  on tested hardware.
+- Probably should not be default but should be an option?

@@ -213,6 +213,7 @@ void xpoll()
 {
         XEvent xev;
         assert(d.xdpy != NULL);
+        XSync(d.xdpy, False);
         while (XPending(d.xdpy)) {
                 XNextEvent(d.xdpy, &xev);
                 switch (xev.type) {
@@ -299,7 +300,6 @@ void xwinswap(WINDOW *win)
                                      0, 0, 0, 0, surf->w, surf->h, 0);
         else XPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg,
                        0, 0, 0, 0, surf->w, surf->h);
-        XSync(d.xdpy, False);
 }
 
 int xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
