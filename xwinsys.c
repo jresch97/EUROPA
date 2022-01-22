@@ -39,7 +39,7 @@
 #define XSHMPERM   (0600)
 #define XWC        (InputOutput)
 #define XATTRMASK  (CWBitGravity | CWBackPixel | CWBackPixmap | CWColormap | \
-                    CWEventMask)
+                    CWEventMask | CWBorderPixel)
 #define XINPUTMASK (StructureNotifyMask)
 #define XASSERT()  (assert(d.xdpy != NULL))
 #define XWD(win)   ((XWINDAT*)win->dat)
@@ -66,6 +66,7 @@ typedef struct XDAT {
 
 typedef struct XWINDAT {
         XWINDOW xwin;
+        GC      xgc;
 } XWINDAT;
 
 typedef struct XSURFDAT {
@@ -94,17 +95,23 @@ void xwinpos(XWINDOW xwin, int *x, int *y)
 
 XWINDOW xwincreate(WINDOW *win)
 {
+        XWINDAT             *wd;
         XWINDOW              xwin;
         XSetWindowAttributes xattr;
+        XVisualInfo          xvi;
         XASSERT();
+        wd = XWD(win);
+        if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) return 0;
         xattr.bit_gravity = StaticGravity;
         xattr.background_pixel = 0;
         xattr.background_pixmap = None;
-        xattr.colormap = XCreateColormap(d.xdpy, d.xroot, d.xvis, AllocNone);
+        xattr.border_pixel = 0;
+        xattr.colormap = XCreateColormap(d.xdpy, d.xroot, xvi.visual, AllocNone);
         xattr.event_mask = XINPUTMASK;
         xwin = XCreateWindow(d.xdpy, d.xroot, win->x, win->y, win->w, win->h,
-                             0, 24, XWC, d.xvis, XATTRMASK, &xattr);
-        if (!xwin) return xwin;
+                             0, xvi.depth, XWC, xvi.visual, XATTRMASK, &xattr);
+        if (!xwin) return 0;
+        wd->xgc = XCreateGC(d.xdpy, xwin, 0, 0);
         XSetWMProtocols(d.xdpy, xwin, &d.xwmdm, 1);
         XStoreName     (d.xdpy, xwin, win->cap);
         XMapWindow     (d.xdpy, xwin);
@@ -120,20 +127,21 @@ int ximgalloc(SURFACE *surf)
         XASSERT();
         assert(surf != NULL);
         sd = XSD(surf);
-        if (!XMatchVisualInfo(d.xdpy, d.xscr, d.xd, TrueColor, &xvi)) return 0;
+        if (!XMatchVisualInfo(d.xdpy, d.xscr, 32, TrueColor, &xvi)) return 0;
         if (xshmav()) {
+                surf->bytes = surf->w * surf->h * (xvi.depth / 8);
                 sd->useshm         = 1;
                 sd->xshm0.shmid    = shmget(IPC_PRIVATE,
-                                            surf->w * surf->h * d.xd,
+                                            surf->bytes,
                                             IPC_CREAT | XSHMPERM);
                 sd->xshm0.shmaddr  = shmat (sd->xshm0.shmid, NULL, 0);
                 sd->xshm0.readOnly = 0;
+                if (!XShmAttach(d.xdpy, &sd->xshm0)) goto errfsh;
                 sd->xshm1.shmid    = shmget(IPC_PRIVATE,
-                                            surf->w * surf->h * d.xd,
+                                            surf->bytes,
                                             IPC_CREAT | XSHMPERM);
                 sd->xshm1.shmaddr  = shmat (sd->xshm1.shmid, NULL, 0);
                 sd->xshm1.readOnly = 0;
-                if (!XShmAttach(d.xdpy, &sd->xshm0)) goto errfsh;
                 if (!XShmAttach(d.xdpy, &sd->xshm1)) goto errfsh;
                 sd->ximg0 = XShmCreateImage(d.xdpy,
                                             xvi.visual, xvi.depth, ZPixmap,
@@ -146,18 +154,16 @@ int ximgalloc(SURFACE *surf)
                                             surf->w, surf->h);
                 if (!sd->ximg1) goto errdsh;
                 surf->px = sd->xshm0.shmaddr;
-                surf->bytes = surf->w * surf->h * d.xd;
                 sd->curr = sd->ximg0;
         }
         else {
-                sd->useshm = 0;
-                surf->px   = malloc(surf->w * surf->h * d.xd);
-                surf->bytes = surf->w * surf->h * 32;
+                sd->useshm  = 0;
+                surf->bytes = surf->w * surf->h * (xvi.depth / 8);
+                surf->px    = malloc(surf->bytes);
                 if (!surf->px) goto err;
-                sd->ximg0  = XCreateImage(d.xdpy,
-                                          xvi.visual, xvi.depth, ZPixmap, 0,
-                                          surf->px, surf->w, surf->h, 32,
-                                          0);
+                sd->ximg0   = XCreateImage(d.xdpy,
+                                           xvi.visual, xvi.depth, ZPixmap, 0,
+                                           surf->px, surf->w, surf->h, 0, 0);
                 if (!sd->ximg0) {
                         free(surf->px);
                         goto err;
@@ -305,16 +311,16 @@ void xwinswap(WINDOW *win)
         sd = XSD(surf);
         if (sd->useshm) {
                 if (sd->curr == sd->ximg0) {
-                        XShmPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg0,
-                                     0, 0, 0, 0, surf->w, surf->h, 0);
                         surf->px = sd->xshm1.shmaddr;
                         sd->curr = sd->ximg1;
+                        XShmPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg0,
+                                     0, 0, 0, 0, surf->w, surf->h, 0);
                 }
                 else {
-                        XShmPutImage(d.xdpy, wd->xwin, d.xgc, sd->ximg1,
-                                     0, 0, 0, 0, surf->w, surf->h, 0);
                         surf->px = sd->xshm0.shmaddr;
                         sd->curr = sd->ximg0;
+                        XShmPutImage(d.xdpy, wd->xwin, wd->xgc, sd->ximg1,
+                                     0, 0, 0, 0, surf->w, surf->h, 0);
                 }
         }
         else {
@@ -332,7 +338,6 @@ int xsurfalloc(SURFACE *surf, PXFMT *pxfmt)
         if (!sd) return 0;
         surf->dat   = sd;
         /* TODO: Handle pixel format properly. */
-        surf->bytes = surf->size * RGBA32.bypp;
         surf->pxfmt = RGBA32;
         if (!ximgalloc(surf)) goto errfsd;
         return 1;

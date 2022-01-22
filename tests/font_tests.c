@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         while (winopen(win)) {
                 f  = clkfreq();
                 t0 = clkelap();
-                memset(surf->px, 0, surf->bytes);
+                memset(surf->px, 0xff000000, surf->bytes);
                 for (j = 0; j < surf->w; j += tw) {
                         for (k = 0; k < surf->h; k += l) {
                                 txtdraw(surf, font, MSG, j, k, rand());
